@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: '/api',
+  apiUrl: 'https://backend-junta-agua-hn.onrender.com/api',
   currencySymbol: 'L ',
 };

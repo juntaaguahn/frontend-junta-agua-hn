@@ -5,7 +5,7 @@ export const environment = {
   // Para crear el túnel del backend ejecuta: devtunnel host -p 4000
   // y coloca la URL que te dé aquí:
   //apiUrl: 'https://4r430trl-4000.use2.devtunnels.ms/api', // ✅ Túnel del backend
-  apiUrl : 'https://4r430trl-4000.use2.devtunnels.ms/api', // ✅ Túnel del backend
+  apiUrl : 'https://backend-junta-agua-hn.onrender.com/api', // ✅ Túnel del backend
   currencySymbol: 'L ',
 };
 
