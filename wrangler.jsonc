@@ -2,6 +2,6 @@
   "name": "frontend-junta-agua-hn",
   "compatibility_date": "2026-08-01",
   "assets": {
-    "directory": "/dist/frontend-junta-agua-hn/browser"
+    "directory": "dist/frontend-junta-agua-hn/browser"
   }
 }
