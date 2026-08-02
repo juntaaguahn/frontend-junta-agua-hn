@@ -1,0 +1,317 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Cobro y Facturación</h1>
+      <p class="page-subtitle">Gestión rápida de cobro en ventanilla</p>
+    </div>
+    <p-button label="Nuevo pago" icon="pi pi-plus" severity="success" rounded (onClick)="nuevo()" />
+  </header>
+
+  <div class="cobro-layout">
+    <!-- LEFT: Lista de abonados -->
+    <aside class="panel-abonados" [class.hide-mobile]="mobilePanel() === 'detalle'">
+      <div class="filtro-abonado">
+        <span class="p-input-icon-left w-full">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar abonado por nombre o código..."
+            class="w-full"
+            [ngModel]="searchTerm()"
+            (ngModelChange)="onSearchInput($event)"
+          />
+        </span>
+      </div>
+
+      @if (selectedAbonado(); as a) {
+        <div class="abonado-activo" (click)="seleccionar(a)">
+          <div class="activo-codigo">{{ a.codigo }}</div>
+          <div class="activo-nombre">{{ a.nombre }}</div>
+          <small class="activo-sector">{{ a.sector || '—' }}</small>
+        </div>
+      }
+
+      <div class="lista-abonados" (scroll)="onAbonadosScroll($event)">
+        @for (a of abonados(); track a.id) {
+          <div
+            class="abonado-card"
+            [class.selected]="selectedAbonado()?.id === a.id"
+            (click)="seleccionar(a)"
+          >
+            <div class="card-header">
+              <span class="codigo">{{ a.codigo }}</span>
+              <span class="estado-tag" [class.activo]="a.estado === 'activo'">
+                {{ a.estado === 'activo' ? 'Al día' : a.estado }}
+              </span>
+            </div>
+            <div class="card-nombre">{{ a.nombre }}</div>
+            <div class="card-meta">
+              <span class="sector">{{ a.sector || '—' }}</span>
+              @if (a.saldo_pendiente && a.saldo_pendiente > 0) {
+                <span class="pendiente">L {{ a.saldo_pendiente | number: '1.2-2' }}</span>
+              }
+            </div>
+          </div>
+        }
+        @if (abonadosCargando()) {
+          <div class="cargando-mas">Cargando más abonados...</div>
+        }
+        @if (!abonadosCargando() && abonados().length === 0) {
+          <div class="sin-resultados">No se encontraron abonados.</div>
+        }
+      </div>
+    </aside>
+
+    <!-- RIGHT: Panel de detalle -->
+    <main class="panel-detalle" [class.hide-mobile]="mobilePanel() === 'lista'">
+      <!-- Mobile back button -->
+      <button class="mobile-back" (click)="volverALista()">
+        <i class="pi pi-arrow-left"></i> Volver a abonados
+      </button>
+
+      @if (detalleCargando()) {
+        <div class="card"><p-skeleton width="100%" height="300px" /></div>
+      } @else if (selectedAbonado(); as a) {
+        <!-- Header abonado -->
+        <div class="detalle-header">
+          <div class="header-icono">
+            <i class="pi pi-user"></i>
+          </div>
+          <div class="header-info">
+            <h2>{{ a.nombre }}</h2>
+            <div class="header-meta">
+              <span
+                ><strong>{{ a.codigo }}</strong></span
+              >
+              @if (a.cedula) {
+                <span>Cédula / RUC: {{ a.cedula }}</span>
+              }
+              @if (a.medidor_numero) {
+                <span>N° Medidor: {{ a.medidor_numero }}</span>
+              }
+              <span>Sector: {{ a.sector || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Facturas pendientes -->
+        @if (facturasPend().length > 0) {
+          <!-- Selector de factura -->
+          <div class="factura-selector">
+            <label>Factura a cobrar:</label>
+            <div class="factura-tabs">
+              @for (f of facturasPend(); track f.id) {
+                <div
+                  class="factura-tab"
+                  [class.active]="facturaSel()?.id === f.id"
+                  (click)="facturaClick(f)"
+                >
+                  <span class="periodo">{{ f.periodo }}</span>
+                  <span class="monto-tab">L {{ f.total | number: '1.2-2' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          @if (facturaSel(); as f) {
+            <!-- Desglose -->
+            <div class="card desglose-card">
+              <h3 class="desglose-titulo">Desglose de la cuenta — Período {{ f.periodo }}</h3>
+
+              <div class="lectura-info">
+                @if (lecturaSel(); as l) {
+                  <div class="lectura-grid">
+                    <div class="lectura-item">
+                      <span class="lectura-label">Lectura Anterior</span>
+                      <span class="lectura-valor">{{ l.lectura_anterior }} m³</span>
+                    </div>
+                    <div class="lectura-item">
+                      <span class="lectura-label">Lectura Actual</span>
+                      <span class="lectura-valor">{{ l.lectura_actual }} m³</span>
+                    </div>
+                    <div class="lectura-item">
+                      <span class="lectura-label">Consumo Total</span>
+                      <span class="lectura-valor consumo">{{ l.consumo_m3 }} m³</span>
+                    </div>
+                    <div class="lectura-item">
+                      <span class="lectura-label">Período</span>
+                      <span class="lectura-valor">{{ f.periodo }}</span>
+                    </div>
+                  </div>
+                } @else if (f.consumo_m3 != null) {
+                  <div class="lectura-row">
+                    <span>Consumo Total</span>
+                    <strong>{{ f.consumo_m3 }} m³</strong>
+                  </div>
+                }
+              </div>
+
+              <div class="items-divider"></div>
+
+              <div class="items-list">
+                <div class="item">
+                  <span class="item-label">Servicio Base Agua Potable</span>
+                  <span class="item-valor">L {{ f.subtotal_agua | number: '1.2-2' }}</span>
+                </div>
+                @if (f.excedente && f.excedente > 0) {
+                  <div class="item">
+                    <span class="item-label">Excedente de Consumo</span>
+                    <span class="item-valor">L {{ f.excedente | number: '1.2-2' }}</span>
+                  </div>
+                }
+                @if (f.alcantarillado && f.alcantarillado > 0) {
+                  <div class="item">
+                    <span class="item-label">Alcantarillado y Saneamiento</span>
+                    <span class="item-valor">L {{ f.alcantarillado | number: '1.2-2' }}</span>
+                  </div>
+                }
+                @if (f.mora && f.mora > 0) {
+                  <div class="item item-mora">
+                    <span class="item-label">Recargo por Mora</span>
+                    <span class="item-valor">L {{ f.mora | number: '1.2-2' }}</span>
+                  </div>
+                }
+                @if (f.multas && f.multas > 0) {
+                  <div class="item">
+                    <span class="item-label">Multas y Otros</span>
+                    <span class="item-valor">L {{ f.multas | number: '1.2-2' }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="items-divider"></div>
+
+              <div class="total-row">
+                <span class="total-label">Total a Cobrar</span>
+                <span class="total-valor">L {{ f.total | number: '1.2-2' }}</span>
+              </div>
+
+              <div class="detalle-acciones">
+                <p-button
+                  label="Cobrar Factura"
+                  icon="pi pi-wallet"
+                  (onClick)="irACobrar()"
+                  styleClass="w-full"
+                />
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="card sin-facturas">
+            <i class="pi pi-check-circle" style="font-size: 2rem; color: #16a34a"></i>
+            <p>No tiene facturas pendientes.</p>
+          </div>
+        }
+
+        <!-- Total pendiente -->
+        <div class="resumen-pendiente">
+          <span>Total pendiente:</span>
+          <strong>L {{ totalFacturasPend() | number: '1.2-2' }}</strong>
+        </div>
+      } @else {
+        <!-- Tabla historial (default) -->
+        <div class="historial-section">
+          <div class="historial-header">
+            <h3>Historial de Pagos</h3>
+            <div class="historial-filtros">
+              <p-datepicker
+                [(ngModel)]="desFiltro"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                appendTo="body"
+                placeholder="Desde"
+                styleClass="filtro-fecha"
+              />
+              <p-datepicker
+                [(ngModel)]="hastaFiltro"
+                dateFormat="yy-mm-dd"
+                [showIcon]="true"
+                appendTo="body"
+                placeholder="Hasta"
+                styleClass="filtro-fecha"
+              />
+              <p-button label="Buscar" icon="pi pi-search" (onClick)="buscarPagos()" size="small" />
+              <p-button
+                label="Limpiar"
+                icon="pi pi-times"
+                severity="secondary"
+                text
+                (onClick)="limpiarFiltros()"
+                size="small"
+              />
+            </div>
+          </div>
+
+          <p-dataview
+            [value]="data()"
+            [loading]="cargando()"
+            [paginator]="true"
+            [rows]="20"
+            [totalRecords]="total()"
+            [rowsPerPageOptions]="[10, 20, 50]"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+          >
+            <ng-template #list let-items>
+              <div class="pagos-cards">
+                <div
+                  *ngFor="let p of items; trackBy: trackById"
+                  class="pago-card"
+                  (click)="ver(p.id!)"
+                >
+                  <div class="card-top">
+                    <span class="card-id">#{{ p.id }}</span>
+                    <span class="card-periodo">{{ p.factura_periodo || '—' }}</span>
+                  </div>
+                  <div class="card-abonado">
+                    <strong>{{ p.abonado_nombre || '—' }}</strong>
+                    <small>{{ p.abonado_codigo }}</small>
+                  </div>
+                  <div class="card-body">
+                    <div class="card-row">
+                      <span class="label">Monto</span>
+                      <span class="value monto">L {{ p.monto | number: '1.2-2' }}</span>
+                    </div>
+                    <div class="card-row">
+                      <span class="label">Método</span>
+                      <span class="value">{{ metodoLabel(p.metodo) }}</span>
+                    </div>
+                    <div class="card-row">
+                      <span class="label">Fecha</span>
+                      <span class="value">{{ p.fecha_pago | date: 'yyyy-MM-dd' }}</span>
+                    </div>
+                  </div>
+                  <div class="card-acciones" (click)="$event.stopPropagation()">
+                    <p-button
+                      icon="pi pi-eye"
+                      pTooltip="Ver recibo"
+                      (onClick)="ver(p.id!)"
+                      severity="info"
+                      text
+                      rounded
+                    />
+                    <p-button
+                      icon="pi pi-ban"
+                      pTooltip="Anular"
+                      (onClick)="anular(p, $event)"
+                      severity="danger"
+                      text
+                      rounded
+                    />
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+            <ng-template #emptymessage>
+              <div class="text-center p-3">No hay pagos registrados.</div>
+            </ng-template>
+          </p-dataview>
+        </div>
+      }
+    </main>
+  </div>
+</section>

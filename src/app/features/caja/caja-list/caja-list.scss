@@ -1,0 +1,46 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+
+  .acciones {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+.totales-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.egreso-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0.25rem 0;
+}
+
+.egreso-form .campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.egreso-form .campo label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color, #334155);
+}
+
+.egreso-form .campo .req {
+  color: var(--red-500, #ef4444);
+}

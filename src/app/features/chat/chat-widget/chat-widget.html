@@ -1,0 +1,30 @@
+<div class="chat-widget">
+  <div class="chat-widget-panel" [class.abierto]="abierto()">
+    <header class="chat-widget-header">
+      <div class="chat-widget-titulo">
+        <span class="chat-widget-avatar"><i class="pi pi-android"></i></span>
+        <div class="chat-widget-texto">
+          <strong>Asistente IA</strong>
+          <span>{{ subtitulo() }}</span>
+        </div>
+      </div>
+      <button class="chat-widget-cerrar" (click)="abierto.set(false)" title="Cerrar chat">
+        <i class="pi pi-times"></i>
+      </button>
+    </header>
+    <app-chat-panel [tipo]="tipo()" />
+  </div>
+
+  <button
+    class="chat-widget-boton"
+    [class.abierto]="abierto()"
+    (click)="toggle()"
+    [attr.title]="abierto() ? 'Cerrar chat' : 'Abrir asistente'"
+  >
+    @if (abierto()) {
+      <i class="pi pi-times"></i>
+    } @else {
+      <i class="pi pi-android"></i>
+    }
+  </button>
+</div>

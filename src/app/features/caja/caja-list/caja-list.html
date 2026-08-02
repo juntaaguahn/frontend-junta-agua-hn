@@ -1,0 +1,223 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Caja</h1>
+      <p class="page-subtitle">Movimientos de caja — ingresos y egresos</p>
+    </div>
+    <div>
+      <p-button
+        label="Nuevo egreso"
+        icon="pi pi-minus-circle"
+        severity="danger"
+        rounded
+        (onClick)="abrirDialogEgreso()"
+      />
+    </div>
+  </header>
+
+  @if (resumen(); as r) {
+    <div class="totales-grid">
+      <div class="total-card total-facturado">
+        <div class="label">Ingresos</div>
+        <div class="value">L {{ r.ingresos | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card total-pagado">
+        <div class="label">Egresos</div>
+        <div class="value">L {{ r.egresos | number: '1.2-2' }}</div>
+      </div>
+      <div
+        class="total-card"
+        [class.total-saldo]="r.saldo >= 0"
+        [class.total-vencido]="r.saldo < 0"
+      >
+        <div class="label">Saldo</div>
+        <div class="value">L {{ r.saldo | number: '1.2-2' }}</div>
+      </div>
+    </div>
+  }
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Concepto</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar concepto..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Desde</label>
+      <p-datepicker
+        [(ngModel)]="desFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo">
+      <label>Hasta</label>
+      <p-datepicker
+        [(ngModel)]="hastaFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo">
+      <label>Tipo</label>
+      <p-select
+        [(ngModel)]="tipoFiltro"
+        [options]="tipoOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Filtrar tipo"
+        appendTo="body"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="data()"
+    [loading]="cargando()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [totalRecords]="total()"
+    [lazy]="true"
+    (onLazyLoad)="onPage($event)"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (m of items; track m.id) {
+          <div class="dv-card">
+            <div class="dv-top">
+              <span class="dv-title">{{ m.concepto }}</span>
+              <p-tag
+                [value]="tipoLabel(m.tipo)"
+                [severity]="m.tipo === 'ingreso' ? 'success' : 'danger'"
+              />
+            </div>
+
+            <div class="dv-body">
+              <div class="dv-row">
+                <span class="dv-label">ID</span>
+                <span class="dv-value">{{ m.id }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Monto</span>
+                <span class="dv-value dv-monto">L {{ m.monto | number: '1.2-2' }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Efectivo recibido</span>
+                <span class="dv-value">
+                  {{
+                    m.efectivo_recibido != null
+                      ? 'L ' + (m.efectivo_recibido | number: '1.2-2')
+                      : '—'
+                  }}
+                </span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Cambio</span>
+                <span class="dv-value">
+                  {{ m.cambio != null ? 'L ' + (m.cambio | number: '1.2-2') : '—' }}
+                </span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Fecha</span>
+                <span class="dv-value">{{ m.fecha | date: 'yyyy-MM-dd' }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Usuario</span>
+                <span class="dv-value">{{ m.usuario_nombre || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay movimientos que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>
+
+<p-dialog
+  header="Registrar egreso"
+  [(visible)]="showDialogEgreso"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: '420px', maxWidth: '92vw' }"
+>
+  <div class="egreso-form p-fluid">
+    <div class="campo">
+      <label>Concepto <span class="req">*</span></label>
+      <p-select
+        [(ngModel)]="egresoForm.concepto"
+        [options]="tegresosOptions()"
+        optionLabel="descripcion"
+        optionValue="descripcion"
+        placeholder="Seleccionar concepto"
+        appendTo="body"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="campo">
+      <label>Monto <span class="req">*</span></label>
+      <p-inputnumber
+        [(ngModel)]="egresoForm.monto"
+        [min]="0.01"
+        [max]="999999.99"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        prefix="L "
+        mode="decimal"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="campo">
+      <label>Fecha <span class="req">*</span></label>
+      <p-datepicker
+        [(ngModel)]="egresoForm.fecha"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      (onClick)="showDialogEgreso.set(false)"
+    />
+    <p-button
+      label="Guardar"
+      icon="pi pi-check"
+      [loading]="guardandoEgreso()"
+      (onClick)="guardarEgreso()"
+    />
+  </ng-template>
+</p-dialog>

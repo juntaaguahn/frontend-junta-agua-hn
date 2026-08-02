@@ -1,0 +1,73 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Períodos por Usuario</h1>
+      <p class="page-subtitle">Asignación de períodos de facturación a los usuarios</p>
+    </div>
+    <p-button label="Nueva asignación" icon="pi pi-plus" rounded (onClick)="nuevaAsignacion()" />
+  </header>
+
+  <div class="card">
+    <p-table
+      [value]="data()"
+      [loading]="cargando()"
+      dataKey="id"
+      [paginator]="true"
+      [rows]="20"
+      [rowsPerPageOptions]="[10, 20, 50]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+      responsiveLayout="scroll"
+      [globalFilterFields]="['usuario_nombre', 'usuario_username', 'periodo']"
+    >
+      <ng-template #caption>
+        <div class="table-toolbar">
+          <span class="p-input-icon-left">
+            <i class="pi pi-search"></i>
+            <input pInputText type="text" placeholder="Buscar..." />
+          </span>
+        </div>
+      </ng-template>
+      <ng-template #header>
+        <tr>
+          <th>Usuario</th>
+          <th>Username</th>
+          <th>Período</th>
+          <th>Estado</th>
+          <th style="width: 80px"></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-up>
+        <tr>
+          <td>{{ up.usuario_nombre }}</td>
+          <td>{{ up.usuario_username }}</td>
+          <td>{{ up.periodo }}</td>
+          <td>
+            <p-tag
+              [value]="periodoStatusLabel(up.periodo_status!)"
+              [severity]="periodoStatusSeverity(up.periodo_status!)"
+            />
+          </td>
+          <td>
+            <p-button
+              icon="pi pi-trash"
+              pTooltip="Quitar asignación"
+              (onClick)="eliminar(up)"
+              severity="danger"
+              text
+              rounded
+            />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" class="text-center p-3">No hay asignaciones registradas.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</section>

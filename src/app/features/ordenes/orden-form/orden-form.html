@@ -1,0 +1,63 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Nueva orden de corte</h1>
+      <p class="page-subtitle">Suspensión del servicio por morosidad</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="card orden-form-grid">
+    <div class="campo">
+      <label for="abonado_id">Abonado <span class="req">*</span></label>
+      <p-select
+        id="abonado_id"
+        formControlName="abonado_id"
+        [options]="abonados()"
+        optionLabel="nombre"
+        optionValue="id"
+        [filter]="true"
+        filterPlaceholder="Buscar abonado..."
+        appendTo="body"
+        [ngClass]="{ 'ng-invalid': invalid('abonado_id') }"
+      />
+      @if (invalid('abonado_id')) {
+        <small class="err">Seleccione un abonado</small>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="fecha_emision">Fecha de emisión <span class="req">*</span></label>
+      <p-datepicker
+        id="fecha_emision"
+        formControlName="fecha_emision"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="campo campo-wide">
+      <label for="motivo">Motivo</label>
+      <textarea pTextarea id="motivo" formControlName="motivo" rows="2" maxlength="255"></textarea>
+    </div>
+
+    <div class="acciones-form">
+      <p-button
+        type="button"
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="volver()"
+      />
+      <p-button type="submit" label="Crear orden" icon="pi pi-check" [loading]="guardando()" />
+    </div>
+  </form>
+</section>

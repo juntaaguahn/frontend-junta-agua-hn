@@ -1,0 +1,99 @@
+<div class="usuarios-page">
+  <div class="page-header">
+    <h2>Usuarios</h2>
+    <p-button label="Nuevo" icon="pi pi-plus" severity="success" rounded (onClick)="abrirNuevo()" />
+  </div>
+  <div class="filtros card">
+    <div class="campo">
+      <label>Buscar</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Nombre, username o email..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiar()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="usuarios()"
+    [loading]="cargando()"
+    [paginator]="true"
+    [rows]="20"
+    [totalRecords]="total()"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      @for (u of items; track u.id) {
+        <div class="pagos-cards">
+          <div class="pago-card">
+            <div class="card-top">
+              <span class="card-id">Id. {{ u.id }}</span>
+            </div>
+            <div class="card-abonado">
+              <strong>{{ u.nombre }}</strong>
+            </div>
+            <div class="card-body">
+              <div class="card-row">
+                <span class="label">username</span>
+                <span class="value"> {{ u.username }}</span>
+              </div>
+
+              <div class="card-row">
+                <span class="label">email</span>
+                <span class="value"> {{ u.email }}</span>
+              </div>
+              <div class="card-row">
+                <span class="label">Rol</span>
+                <span class="value"
+                  ><p-tag [value]="u.rol" [severity]="getRolSeverity(u.rol)"
+                /></span>
+              </div>
+              <div class="card-row">
+                <span class="label">Estado</span>
+                <span class="value"
+                  ><p-tag [value]="u.estado" [severity]="getEstadoSeverity(u.estado)"
+                /></span>
+              </div>
+            </div>
+            <div class="card-acciones" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-eye"
+                pTooltip="Editar"
+                (onClick)="abrirEditar(u)"
+                severity="info"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-ban"
+                pTooltip="Quitar"
+                (onClick)="eliminar(u)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        </div>
+      }
+    </ng-template>
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay usuarios que coincidan con la búsqueda.</div>
+    </ng-template>
+  </p-dataview>
+</div>

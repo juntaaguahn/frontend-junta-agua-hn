@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Resumen financiero</h1>
+      <p class="page-subtitle">
+        Totales acumulados del sistema. Selecciona una tarjeta para ver su detalle.
+      </p>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <div class="resumen-grid">
+      @for (item of [1, 2, 3]; track item) {
+        <p-skeleton width="100%" height="120px" styleClass="rounded-2xl" />
+      }
+    </div>
+    <p-skeleton width="100%" height="380px" styleClass="rounded-2xl" />
+  } @else if (resumen(); as r) {
+    <div class="resumen-grid">
+      <button type="button" class="kpi-card" (click)="verDetalle('facturado')">
+        <div class="kpi-header">
+          <span class="kpi-label">Total facturado</span>
+          <div class="kpi-icon blue"><i class="pi pi-file"></i></div>
+        </div>
+        <div class="kpi-value">L {{ r.totales.total_facturado | number: '1.2-2' }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-action">Ver facturas <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </button>
+
+      <button type="button" class="kpi-card" (click)="verDetalle('pagado')">
+        <div class="kpi-header">
+          <span class="kpi-label">Total pagado</span>
+          <div class="kpi-icon green"><i class="pi pi-wallet"></i></div>
+        </div>
+        <div class="kpi-value">L {{ r.totales.total_pagado | number: '1.2-2' }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-action">Ver pagos <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </button>
+
+      <button type="button" class="kpi-card" (click)="verDetalle('mora')">
+        <div class="kpi-header">
+          <span class="kpi-label">Total en mora</span>
+          <div class="kpi-icon rose"><i class="pi pi-exclamation-triangle"></i></div>
+        </div>
+        <div class="kpi-value">L {{ r.totales.total_mora | number: '1.2-2' }}</div>
+        <div class="kpi-footer">
+          <span class="kpi-action">Ver morosidad <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </button>
+    </div>
+
+    <article class="card chart-card">
+      <div class="card-header">
+        <div>
+          <h3>Comparativo financiero</h3>
+          <p class="card-sub">Facturado, pagado y saldo en mora (período actual)</p>
+        </div>
+        <span class="card-badge">Resumen</span>
+      </div>
+      <div class="chart-container">
+        <p-chart type="bar" [data]="chartData()" [options]="chartOptions" height="300px" />
+      </div>
+    </article>
+  } @else {
+    <div class="card empty-state">No se pudo cargar el resumen.</div>
+  }
+</section>

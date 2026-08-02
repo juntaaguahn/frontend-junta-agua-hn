@@ -1,0 +1,162 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Órdenes de Corte</h1>
+      <p class="page-subtitle">Administración de suspensiones del servicio por morosidad</p>
+    </div>
+    <p-button label="Nueva orden" icon="pi pi-plus" severity="danger" rounded (onClick)="nuevo()" />
+  </header>
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Abonado</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Nombre o código de abonado..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Emisión desde</label>
+      <p-datepicker
+        [(ngModel)]="desFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo">
+      <label>Emisión hasta</label>
+      <p-datepicker
+        [(ngModel)]="hastaFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <div class="estado-tabs">
+    @for (opt of estadoOptions; track opt.value) {
+      <button
+        class="tab-btn"
+        [class.active]="estadoFiltro() === opt.value"
+        (click)="cambiarFiltro(opt.value)"
+      >
+        <i [class]="opt.icon"></i>
+        {{ opt.label }}
+      </button>
+    }
+  </div>
+
+  <p-dataview
+    [value]="data()"
+    [loading]="cargando()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="limit()"
+    [totalRecords]="total()"
+    [lazy]="true"
+    (onLazyLoad)="onPage($event)"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (o of items; track o.id) {
+          <div class="dv-card" (click)="ver(o.id)">
+            <div class="dv-top">
+              <span class="dv-title">#{{ o.id }} · {{ o.abonado_nombre }}</span>
+              <p-tag [value]="estadoLabel(o.estado)" [severity]="estadoSeverity(o.estado)" />
+            </div>
+
+            <div class="dv-body">
+              <div class="dv-row">
+                <span class="dv-label">Código</span>
+                <span class="dv-value">{{ o.abonado_codigo }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Motivo</span>
+                <span class="dv-value">{{ o.motivo || '—' }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Emisión</span>
+                <span class="dv-value">{{ o.fecha_emision | date: 'yyyy-MM-dd' }}</span>
+              </div>
+              <div class="dv-row">
+                <span class="dv-label">Ejecución</span>
+                <span class="dv-value">
+                  {{ o.fecha_ejecucion ? (o.fecha_ejecucion | date: 'yyyy-MM-dd') : '—' }}
+                </span>
+              </div>
+              @if (o.factura_total != null) {
+                <div class="dv-row">
+                  <span class="dv-label">Factura</span>
+                  <span class="dv-value dv-monto">L {{ o.factura_total | number: '1.2-2' }}</span>
+                </div>
+              }
+              @if (o.direccion) {
+                <div class="dv-row">
+                  <span class="dv-label">Dirección</span>
+                  <span class="dv-value">{{ o.direccion }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="dv-actions" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-eye"
+                pTooltip="Ver"
+                (onClick)="ver(o.id)"
+                severity="info"
+                text
+                rounded
+              />
+              @if (o.estado === 'pendiente') {
+                <p-button
+                  icon="pi pi-play"
+                  pTooltip="Ejecutar"
+                  (onClick)="ejecutar(o, $event)"
+                  severity="warn"
+                  text
+                  rounded
+                />
+              }
+              <p-button
+                icon="pi pi-trash"
+                pTooltip="Eliminar"
+                (onClick)="eliminar(o, $event)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay órdenes de corte que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>

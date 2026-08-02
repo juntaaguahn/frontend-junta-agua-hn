@@ -1,0 +1,62 @@
+<div class="login-page">
+  <div class="login-bg"></div>
+
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="assets/img/cascada.png" alt="Logo Junta de Agua" class="login-logo-img" />
+      </div>
+
+      <div class="login-header">
+        <h2>{{ params.nombreEmpresa() }}</h2>
+        <p class="text-muted">Sistema de Gestión Administrativa</p>
+      </div>
+
+      @if (error()) {
+        <p-message severity="error" [text]="error()" styleClass="w-full mb-3" />
+      }
+
+      <form class="login-form" (ngSubmit)="onSubmit()">
+        <div class="campo">
+          <label for="username">Usuario <span class="req">*</span></label>
+          <input
+            name="username"
+            type="text"
+            pInputText
+            [(ngModel)]="username"
+            styleClass="w-full"
+            autofocus
+          />
+        </div>
+
+        <div class="campo">
+          <label for="password">Contraseña <span class="req">*</span></label>
+          <p-password
+            name="password"
+            [(ngModel)]="password"
+            [toggleMask]="true"
+            [fluid]="true"
+            [feedback]="false"
+          />
+        </div>
+
+        <p-button
+          type="submit"
+          label="Iniciar Sesión"
+          icon="pi pi-sign-in"
+          [loading]="cargando()"
+          styleClass="w-full mt-2"
+        />
+      </form>
+
+      <div class="login-footer">
+        @if (!isProd) {
+          <small class="text-muted">Credenciales demo: admin / admin123</small>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Widget de chat público para abonados -->
+  <app-chat-widget tipo="abonado" />
+</div>

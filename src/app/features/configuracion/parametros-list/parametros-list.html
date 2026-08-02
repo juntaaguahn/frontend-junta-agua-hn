@@ -1,0 +1,157 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Parámetros</h1>
+      <p class="page-subtitle">Parámetros generales del sistema (clave / valor)</p>
+    </div>
+    <p-button label="Nuevo parámetro" icon="pi pi-plus" rounded (onClick)="abrirNuevo()" />
+  </header>
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Buscar</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Clave o valor..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Estado</label>
+      <p-select
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFiltro()"
+        (onChange)="statusFiltro.set($event.value); buscar()"
+        placeholder="Todos"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="filtered()"
+    [loading]="cargando()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (p of items; track p.id) {
+          <div class="dv-card">
+            <div class="dv-top">
+              <span class="dv-title">{{ p.key_param }}</span>
+              <p-tag [value]="statusLabel(p.status)" [severity]="statusSeverity(p.status)" />
+            </div>
+            <div class="dv-value">{{ p.value_param }}</div>
+
+            <div class="dv-actions">
+              <p-button
+                icon="pi pi-pencil"
+                pTooltip="Editar"
+                (onClick)="abrirEditar(p)"
+                severity="warn"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-trash"
+                pTooltip="Eliminar"
+                (onClick)="eliminar(p)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay parámetros que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>
+
+<p-dialog
+  [header]="editando() ? 'Editar parámetro' : 'Nuevo parámetro'"
+  [modal]="true"
+  [(visible)]="dialogVisible"
+  [style]="{ width: '420px', maxWidth: '92vw' }"
+  appendTo="body"
+>
+  <div class="p-fluid">
+    <div class="campo">
+      <label for="paramKey">Clave</label>
+      <input
+        pInputText
+        id="paramKey"
+        [ngModel]="formKey()"
+        (ngModelChange)="formKey.set($event)"
+        maxlength="50"
+        placeholder="ej. IVA"
+        [readonly]="editando()"
+      />
+    </div>
+    <div class="campo">
+      <label for="paramValue">Valor</label>
+      <input
+        pInputText
+        id="paramValue"
+        [ngModel]="formValue()"
+        (ngModelChange)="formValue.set($event)"
+        maxlength="50"
+        placeholder="ej. 15"
+        (keyup.enter)="guardar()"
+      />
+    </div>
+    <div class="campo">
+      <label for="paramStatus">Estado</label>
+      <p-select
+        id="paramStatus"
+        [options]="statusOptions.slice(1)"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="formStatus()"
+        (onChange)="formStatus.set($event.value)"
+        placeholder="Estado"
+      />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      type="button"
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="dialogVisible.set(false)"
+    />
+    <p-button
+      type="button"
+      label="Guardar"
+      icon="pi pi-check"
+      [loading]="guardando()"
+      (onClick)="guardar()"
+    />
+  </ng-template>
+</p-dialog>

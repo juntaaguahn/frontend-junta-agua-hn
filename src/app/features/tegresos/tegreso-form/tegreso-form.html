@@ -1,0 +1,59 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ titulo() }}</h1>
+      <p class="page-subtitle">Concepto para registrar egresos en caja</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  @if (cargando()) {
+    <div class="card">Cargando datos...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="card tegreso-form-grid">
+      <div class="campo">
+        <label for="descripcion">Descripción <span class="req">*</span></label>
+        <input
+          pInputText
+          id="descripcion"
+          formControlName="descripcion"
+          maxlength="50"
+          [ngClass]="{ 'ng-invalid': invalid('descripcion') }"
+        />
+        @if (invalid('descripcion')) {
+          <small class="err">La descripción es obligatoria (máx. 50 caracteres)</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="status">Estado <span class="req">*</span></label>
+        <p-select
+          id="status"
+          formControlName="status"
+          [options]="statusOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="acciones-form">
+        <p-button
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="volver()"
+        />
+        <p-button type="submit" label="Guardar" icon="pi pi-check" [loading]="guardando()" />
+      </div>
+    </form>
+  }
+</section>

@@ -1,0 +1,108 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Tipos de Egreso</h1>
+      <p class="page-subtitle">Catálogo de conceptos para registrar egresos en caja</p>
+    </div>
+    <p-button label="Nuevo tipo" icon="pi pi-plus" rounded (onClick)="nuevo()" />
+  </header>
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Buscar</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Descripción..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Estado</label>
+      <p-select
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFiltro()"
+        (onChange)="statusFiltro.set($event.value); buscar()"
+        placeholder="Todos"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="filtered()"
+    [loading]="cargando()"
+    dataKey="egresoId"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (t of items; track t.egresoId) {
+          <div
+            class="dv-card"
+            (click)="ver(t.egresoId)"
+            role="button"
+            tabindex="0"
+            (keydown.enter)="ver(t.egresoId)"
+          >
+            <div class="dv-top">
+              <span class="dv-title">{{ t.descripcion }}</span>
+              <p-tag [value]="statusLabel(t.status)" [severity]="statusSeverity(t.status)" />
+            </div>
+
+            <div class="dv-actions" (click)="$event.stopPropagation()">
+              <p-button
+                icon="pi pi-eye"
+                pTooltip="Ver"
+                (onClick)="ver(t.egresoId)"
+                severity="info"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-pencil"
+                pTooltip="Editar"
+                (onClick)="editar(t.egresoId, $event)"
+                severity="warn"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-trash"
+                pTooltip="Eliminar"
+                (onClick)="eliminar(t, $event)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay tipos de egreso que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>

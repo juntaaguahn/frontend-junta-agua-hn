@@ -1,0 +1,224 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ titulo() }}</h1>
+      <p class="page-subtitle">Datos del cliente del servicio de agua</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  @if (cargando()) {
+    <div class="card">Cargando datos...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="card form-grid">
+      <div class="campo">
+        <label for="codigo">Código <span class="req">*</span></label>
+        <input
+          pInputText
+          id="codigo"
+          formControlName="codigo"
+          maxlength="30"
+          [ngClass]="{ 'ng-invalid': invalid('codigo') }"
+        />
+        @if (invalid('codigo')) {
+          <small class="err">El código es obligatorio</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="nombre">Nombre / Razón social <span class="req">*</span></label>
+        <input
+          pInputText
+          id="nombre"
+          formControlName="nombre"
+          maxlength="150"
+          [ngClass]="{ 'ng-invalid': invalid('nombre') }"
+        />
+        @if (invalid('nombre')) {
+          <small class="err">El nombre es obligatorio</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="cedula">Cédula / RUC <span class="req">*</span></label>
+        <input
+          pInputText
+          id="cedula"
+          formControlName="cedula"
+          maxlength="20"
+          [ngClass]="{ 'ng-invalid': invalid('cedula') }"
+        />
+        @if (invalid('cedula')) {
+          <small class="err">La cédula/RUC es obligatoria</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="email">Correo electrónico <span class="req">*</span></label>
+        <input
+          pInputText
+          id="email"
+          formControlName="email"
+          maxlength="120"
+          type="email"
+          [ngClass]="{ 'ng-invalid': invalid('email') }"
+        />
+        @if (invalid('email')) {
+          <small class="err">Ingrese un correo válido</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="telefono">Teléfono</label>
+        <input pInputText id="telefono" formControlName="telefono" maxlength="30" />
+      </div>
+
+      <div class="campo">
+        <label for="sector">Sector</label>
+        <p-select
+          id="sector"
+          formControlName="sector"
+          [options]="sectorOptions()"
+          optionLabel="descripcion"
+          optionValue="descripcion"
+          appendTo="body"
+          [showClear]="true"
+          placeholder="Seleccionar sector"
+        >
+          <ng-template pTemplate="footer">
+            <div class="p-2 border-t border-gray-200">
+              <p-button
+                type="button"
+                label="Nuevo sector"
+                icon="pi pi-plus"
+                severity="contrast"
+                outlined
+                rounded
+                size="small"
+                fluid
+                (onClick)="abrirNuevoSector()"
+              />
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+
+      <div class="campo">
+        <label for="tarifaId">Tarifa</label>
+        <p-select
+          id="tarifaId"
+          formControlName="tarifaId"
+          [options]="tarifaOptions()"
+          optionLabel="concepto"
+          optionValue="id"
+          appendTo="body"
+          [showClear]="true"
+          placeholder="Seleccionar tarifa"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="medidor">Número de medidor</label>
+        <input
+          pInputText
+          id="medidor"
+          formControlName="medidor_numero"
+          maxlength="40"
+          [ngClass]="{ 'ng-invalid': invalid('medidor_numero') }"
+        />
+        @if (invalid('medidor_numero')) {
+          <small class="err">El número de medidor es obligatorio para esta tarifa</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="fecha_alta">Fecha de alta</label>
+        <p-datepicker
+          id="fecha_alta"
+          formControlName="fecha_alta"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado <span class="req">*</span></label>
+        <p-select
+          id="estado"
+          formControlName="estado"
+          [options]="estadoOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="campo campo-wide">
+        <label for="direccion">Dirección</label>
+        <textarea
+          pTextarea
+          id="direccion"
+          formControlName="direccion"
+          rows="2"
+          maxlength="200"
+        ></textarea>
+      </div>
+
+      <div class="acciones-form">
+        <p-button
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="volver()"
+        />
+        <p-button type="submit" label="Guardar" icon="pi pi-check" [loading]="guardando()" />
+      </div>
+    </form>
+  }
+
+  <p-dialog
+    header="Nuevo sector"
+    [modal]="true"
+    [(visible)]="dialogVisible"
+    [style]="{ width: '400px' }"
+    appendTo="body"
+  >
+    <div class="campo">
+      <label for="nuevoSector">Descripción</label>
+      <input
+        pInputText
+        id="nuevoSector"
+        [(ngModel)]="nuevaDescripcion"
+        [ngModelOptions]="{ standalone: true }"
+        maxlength="150"
+        placeholder="Nombre del sector"
+        class="w-full"
+        (keyup.enter)="guardarNuevoSector()"
+      />
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        type="button"
+        label="Cancelar"
+        severity="secondary"
+        (onClick)="dialogVisible.set(false)"
+      />
+      <p-button
+        type="button"
+        label="Guardar"
+        icon="pi pi-check"
+        [loading]="guardandoSector()"
+        (onClick)="guardarNuevoSector()"
+      />
+    </ng-template>
+  </p-dialog>
+</section>

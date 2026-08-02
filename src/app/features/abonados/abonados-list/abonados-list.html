@@ -1,0 +1,195 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="abonados-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Gestión de Abonados</h1>
+      <p class="page-subtitle">Nómina oficial de cuentas registradas en el sistema de la Junta.</p>
+    </div>
+    <button
+      pButton
+      pRipple
+      label="Registrar Nuevo Abonado"
+      icon="pi pi-user-plus"
+      class="p-button-success p-button-lg p-button-rounded"
+      (click)="nuevo()"
+    ></button>
+  </header>
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stat-item active">
+      <span class="stat-value">{{ data().length }}</span>
+      <span class="stat-label">Total Abonados</span>
+    </div>
+    <div class="stat-item ok">
+      <span class="stat-value">{{ stats().alDia }}</span>
+      <span class="stat-label">Al Día</span>
+    </div>
+    <div class="stat-item warn">
+      <span class="stat-value">{{ stats().enMora }}</span>
+      <span class="stat-label">En Mora</span>
+    </div>
+    <div class="stat-item danger">
+      <span class="stat-value">{{ stats().cortados }}</span>
+      <span class="stat-label">Cortados</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <i class="pi pi-search search-icon"></i>
+      <input
+        pInputText
+        type="text"
+        placeholder="Buscar por nombre, código o cédula..."
+        [(ngModel)]="q"
+        (keyup.enter)="buscar()"
+        class="search-input"
+      />
+    </div>
+    <p-select
+      [options]="sectores()"
+      [(ngModel)]="sectorFiltro"
+      placeholder="Todos los Sectores"
+      styleClass="w-full"
+      (onChange)="buscar()"
+      [showClear]="true"
+    />
+  </div>
+
+  <!-- Estado filter tabs -->
+  <div class="estado-tabs">
+    @for (opt of estadoOptions; track opt.value) {
+      <button
+        class="tab-btn"
+        [class.active]="estadoFiltro() === opt.value"
+        (click)="estadoFiltro.set(opt.value); buscar()"
+      >
+        <i [class]="opt.icon"></i>
+        {{ opt.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (cargando()) {
+    <div class="cards-grid">
+      @for (s of [1, 2, 3, 4, 5, 6]; track s) {
+        <div class="card-skeleton">
+          <p-skeleton width="60%" height="1.5rem" styleClass="mb-2" />
+          <p-skeleton width="100%" height="0.75rem" styleClass="mb-1" />
+          <p-skeleton width="80%" height="0.75rem" styleClass="mb-1" />
+          <p-skeleton width="40%" height="0.75rem" styleClass="mb-3" />
+          <p-skeleton width="100%" height="2.5rem" borderRadius="0.75rem" />
+        </div>
+      }
+    </div>
+  } @else if (data().length === 0) {
+    <!-- Empty -->
+    <div class="empty-state">
+      <i class="pi pi-users empty-icon"></i>
+      <h3>No hay abonados</h3>
+      <p>No se encontraron abonados que coincidan con los filtros.</p>
+      <button
+        pButton
+        pRipple
+        label="Registrar Nuevo Abonado"
+        icon="pi pi-plus"
+        class="p-button-success"
+        (click)="nuevo()"
+      ></button>
+    </div>
+  } @else {
+    <!-- Cards grid -->
+    <div class="cards-grid">
+      @for (a of data(); track a.id) {
+        <div
+          class="abonado-card"
+          (click)="ver(a.id)"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="ver(a.id)"
+        >
+          <div class="card-top">
+            <span class="card-codigo">{{ a.codigo }}</span>
+            <p-tag
+              [value]="estadoLabel(a.estado)"
+              [severity]="severityFor(a.estado)"
+              [style]="{ 'font-size': '0.8rem', 'font-weight': '700', padding: '0.25rem 0.75rem' }"
+            />
+          </div>
+          <h3 class="card-nombre">{{ a.nombre }}</h3>
+          <div class="card-details">
+            @if (a.sector) {
+              <div class="detail-row">
+                <i class="pi pi-map-marker"></i>
+                <span>{{ a.sector }}</span>
+              </div>
+            }
+            @if (a.medidor_numero) {
+              <div class="detail-row">
+                <i class="pi pi-sliders-h"></i>
+                <span>Medidor: {{ a.medidor_numero }}</span>
+              </div>
+            }
+            @if (a.telefono) {
+              <div class="detail-row">
+                <i class="pi pi-phone"></i>
+                <span>{{ a.telefono }}</span>
+              </div>
+            }
+            @if (a.cedula) {
+              <div class="detail-row">
+                <i class="pi pi-id-card"></i>
+                <span>{{ a.cedula }}</span>
+              </div>
+            }
+          </div>
+          <div class="card-saldo">
+            <span class="saldo-label">Deuda / Saldo:</span>
+            <span class="saldo-value" [class.negativo]="(a.saldo_pendiente || 0) > 0">
+              L {{ a.saldo_pendiente || 0 | number: '1.2-2' }}
+            </span>
+          </div>
+          <div class="card-actions">
+            <button
+              pButton
+              pRipple
+              label="Cobrar"
+              icon="pi pi-credit-card"
+              class="p-button-success p-button-rounded p-button-sm"
+              (click)="cobrar(a, $event)"
+            ></button>
+            <button
+              pButton
+              pRipple
+              label="Ver Ficha"
+              icon="pi pi-eye"
+              class="p-button-outlined p-button-rounded p-button-sm"
+              (click)="ver(a.id)"
+            ></button>
+            <button
+              pButton
+              pRipple
+              icon="pi pi-pencil"
+              pTooltip="Editar"
+              class="p-button-text p-button-rounded p-button-sm"
+              (click)="editar(a.id, $event)"
+            ></button>
+            <button
+              pButton
+              pRipple
+              icon="pi pi-trash"
+              pTooltip="Eliminar"
+              class="p-button-text p-button-danger p-button-rounded p-button-sm"
+              (click)="eliminar(a, $event)"
+            ></button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

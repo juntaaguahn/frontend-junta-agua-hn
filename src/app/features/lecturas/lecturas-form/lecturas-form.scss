@@ -1,0 +1,60 @@
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.25rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  &.campo-wide {
+    grid-column: 1 / -1;
+  }
+
+  .req {
+    color: #ef4444;
+  }
+
+  .err {
+    color: #ef4444;
+    font-size: 0.75rem;
+  }
+
+  .periodo-asignado {
+    font-size: 0.78rem;
+    color: #0369a1;
+    background: #e0f2fe;
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    width: fit-content;
+  }
+}
+
+.lectura-anterior {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 0.5rem 0;
+}
+
+.acciones-form {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}

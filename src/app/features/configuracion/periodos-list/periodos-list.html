@@ -1,0 +1,94 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Períodos</h1>
+      <p class="page-subtitle">Períodos de facturación del sistema</p>
+    </div>
+    <p-button label="Nuevo período" icon="pi pi-plus" rounded (onClick)="abrirNuevo()" />
+  </header>
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Buscar</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Período o año..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Estado</label>
+      <p-select
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFiltro()"
+        (onChange)="statusFiltro.set($event.value); buscar()"
+        placeholder="Todos"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="filtered()"
+    [loading]="cargando()"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (p of items; track p.id) {
+          <div class="dv-card">
+            <div class="dv-top">
+              <span class="dv-title">{{ labelPeriodo(p) }}</span>
+              <p-tag [value]="statusLabel(p.status)" [severity]="statusSeverity(p.status)" />
+            </div>
+
+            <div class="dv-actions">
+              <p-button
+                icon="pi pi-pencil"
+                pTooltip="Editar"
+                (onClick)="abrirEditar(p)"
+                severity="warn"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-trash"
+                pTooltip="Eliminar"
+                (onClick)="eliminar(p)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay períodos que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>

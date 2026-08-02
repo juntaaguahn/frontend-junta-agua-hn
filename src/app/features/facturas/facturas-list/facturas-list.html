@@ -1,0 +1,149 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Facturación</h1>
+      <p class="page-subtitle">Lecturas pendientes de facturar (últimos 3 meses)</p>
+    </div>
+    <div style="display: flex; gap: 0.5rem">
+      <p-button
+        label="Facturación masiva"
+        icon="pi pi-bolt"
+        severity="info"
+        rounded
+        (onClick)="abrirMasiva()"
+      />
+      <p-button
+        label="Refrescar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        rounded
+        (onClick)="cargar(true)"
+      />
+    </div>
+  </header>
+
+  <div class="filters-bar">
+    <p-select
+      [options]="sectores()"
+      [(ngModel)]="sectorFiltro"
+      placeholder="Todos los Sectores"
+      styleClass="w-full"
+      [showClear]="true"
+    />
+    <p-select
+      [options]="abonadosOpts()"
+      [(ngModel)]="abonadoFiltro"
+      placeholder="Todos los Abonados"
+      styleClass="w-full"
+      [showClear]="true"
+      optionLabel="nombre"
+      optionValue="id"
+      [filter]="true"
+      filterBy="nombre,codigo"
+    />
+  </div>
+
+  <p-dataview
+    [value]="lecturasFiltradas()"
+    [loading]="cargando()"
+    [paginator]="true"
+    [rows]="20"
+    [totalRecords]="total()"
+    (onLazyLoad)="onPage($event)"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="lecturas-cards">
+        @for (l of items; track l.id) {
+          <div class="lectura-card">
+            <div class="card-top">
+              <span class="card-id">#{{ l.id }}</span>
+              <span class="card-periodo">{{ l.periodo }}</span>
+              <p-tag value="Sin facturar" severity="warn" styleClass="ml-auto" />
+            </div>
+            <div class="card-abonado">
+              <strong>{{ l.abonado_nombre || '—' }}</strong>
+              <small>{{ l.abonado_codigo || '—' }}</small>
+            </div>
+            <div class="card-details">
+              <div class="card-row">
+                <span class="label">Lectura anterior</span>
+                <span class="value">{{ l.lectura_anterior }}</span>
+              </div>
+              <div class="card-row">
+                <span class="label">Lectura actual</span>
+                <span class="value">{{ l.lectura_actual }}</span>
+              </div>
+              <div class="card-row">
+                <span class="label">Consumo</span>
+                <span class="value">{{ l.consumo_m3 }} m³</span>
+              </div>
+              <div class="card-row">
+                <span class="label">Fecha lectura</span>
+                <span class="value">{{ l.fecha_lectura | date: 'yyyy-MM-dd' }}</span>
+              </div>
+            </div>
+            <div class="card-acciones">
+              <p-button
+                label="Detalle"
+                icon="pi pi-eye"
+                (onClick)="verDetalle(l.id)"
+                severity="info"
+                rounded
+              />
+              <p-button
+                label="Facturar"
+                icon="pi pi-file-plus"
+                (onClick)="nuevaFactura(l)"
+                severity="success"
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+    <ng-template #emptymessage>
+      <div class="text-center p-3">
+        No hay lecturas pendientes de facturar en los últimos 3 meses.
+      </div>
+    </ng-template>
+  </p-dataview>
+</section>
+
+<p-dialog
+  header="Facturación masiva"
+  [(visible)]="showMasivaDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="generar-dialog"
+>
+  <div class="generar-form">
+    <div class="campo">
+      <label>Lecturas a facturar</label>
+      <p>
+        <strong>{{ lecturasFiltradas().length }}</strong> lectura(s) filtrada(s)
+      </p>
+      <small>Vencimiento: 15 días desde hoy (automático)</small>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      text
+      (onClick)="showMasivaDialog.set(false)"
+    />
+    <p-button
+      label="Facturar {{ lecturasFiltradas().length }} lectura(s)"
+      icon="pi pi-bolt"
+      severity="info"
+      [loading]="facturando()"
+      (onClick)="facturarMasiva()"
+    />
+  </ng-template>
+</p-dialog>

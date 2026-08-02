@@ -1,0 +1,128 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Reporte de Recaudo</h1>
+      <p class="page-subtitle">Pagos recibidos por rango de fechas</p>
+    </div>
+    <div>
+      <p-button label="Imprimir" icon="pi pi-print" severity="info" (onClick)="imprimir()" class="no-print" />
+    </div>
+  </header>
+
+  <!-- Encabezado sólo visible al imprimir -->
+  <div class="print-only print-header">
+    <h2>Junta de Agua Potable</h2>
+    <p><strong>Reporte de Recaudo</strong></p>
+    @if (reporte(); as r) {
+      <p>Del {{ r.filtros.des }} al {{ r.filtros.hasta }}</p>
+    }
+    <p>Generado el {{ hoy() }}</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros card no-print">
+    <div class="campo">
+      <label>Desde</label>
+      <p-datepicker
+        [(ngModel)]="desFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo">
+      <label>Hasta</label>
+      <p-datepicker
+        [(ngModel)]="hastaFiltro"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+        placeholder="yyyy-mm-dd"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Generar" icon="pi pi-search" (onClick)="generar()" />
+      <p-button label="Limpiar" icon="pi pi-times" severity="secondary" text (onClick)="limpiarFiltros()" />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="card">
+      <p-skeleton width="100%" height="6rem" />
+    </div>
+  } @else if (reporte(); as r) {
+    <!-- Totales por concepto -->
+    <div class="totales-grid">
+      <div class="total-card">
+        <div class="label">Total recaudado</div>
+        <div class="value">L {{ r.totales.total | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">N° pagos</div>
+        <div class="value">{{ r.totales.cantidad }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Agua base</div>
+        <div class="value">L {{ r.totales.agua_base | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Excedente</div>
+        <div class="value">L {{ r.totales.excedente | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Alcantarillado</div>
+        <div class="value">L {{ r.totales.alcantarillado | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Mora</div>
+        <div class="value">L {{ r.totales.mora | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Multas</div>
+        <div class="value">L {{ r.totales.multas | number: '1.2-2' }}</div>
+      </div>
+    </div>
+
+    <!-- Detalle -->
+    <p-table
+      [value]="r.detalle"
+      dataKey="id"
+      [rows]="50"
+      [paginator]="r.detalle.length > 50"
+      size="small"
+      [tableStyle]="{ 'min-width': '1000px' }"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha</th>
+          <th>Comprobante</th>
+          <th>Código</th>
+          <th>Abonado</th>
+          <th>Periodo</th>
+          <th>Método</th>
+          <th>Cajero</th>
+          <th class="num">Monto</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-p>
+        <tr>
+          <td>{{ p.fecha_pago | date: 'yyyy-MM-dd' }}</td>
+          <td>{{ p.comprobante || '—' }}</td>
+          <td>{{ p.abonado_codigo }}</td>
+          <td>{{ p.abonado_nombre }}</td>
+          <td>{{ p.factura_periodo || '—' }}</td>
+          <td>{{ p.metodo }}</td>
+          <td>{{ p.cajero_nombre || '—' }}</td>
+          <td class="num monto">L {{ p.monto | number: '1.2-2' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8" class="text-center">No hay pagos en el rango seleccionado.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</section>

@@ -1,0 +1,217 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Registrar pago</h1>
+      <p class="page-subtitle">Registre un pago contra una factura</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="card form-grid">
+    <div class="campo campo-wide">
+      <label for="abonado_id">Abonado <span class="req">*</span></label>
+      @if (abonadoPreseleccionado(); as a) {
+        <div class="abonado-preseleccionado">
+          <i class="pi pi-user"></i>
+          <span
+            ><strong>{{ a.nombre }}</strong> — {{ a.codigo }} <small>(preseleccionado)</small></span
+          >
+        </div>
+      } @else {
+        <p-select
+          id="abonado_id"
+          formControlName="abonado_id"
+          [options]="abonados()"
+          optionLabel="nombre"
+          optionValue="id"
+          [filter]="true"
+          filterBy="nombre,codigo"
+          (onFilter)="buscarAbonado($event.filter)"
+          placeholder="Buscar abonado…"
+          [showClear]="true"
+          appendTo="body"
+        />
+      }
+      @if (invalid('abonado_id')) {
+        <small class="err">Seleccione un abonado</small>
+      }
+    </div>
+
+    <div class="campo campo-wide">
+      <label for="factura_id">Factura</label>
+      <p-select
+        id="factura_id"
+        formControlName="factura_id"
+        [options]="facturas()"
+        optionLabel="label"
+        optionValue="id"
+        placeholder="Seleccionar factura (opcional)"
+        [showClear]="true"
+        appendTo="body"
+      />
+      @if (facturaSeleccionada(); as f) {
+        <small class="info"
+          >Período {{ f.periodo }} — Total: L.{{ f.total | number: '1.2-2' }} — Pagado: L.{{
+            f.total_pagado || 0 | number: '1.2-2'
+          }}</small
+        >
+      }
+    </div>
+
+    <div class="campo">
+      <label for="monto">Monto <span class="req">*</span></label>
+      <p-inputnumber
+        id="monto"
+        formControlName="monto"
+        [min]="0.01"
+        [max]="999999.99"
+        [minFractionDigits]="2"
+        [maxFractionDigits]="2"
+        prefix="L "
+        locale="en-US"
+        mode="decimal"
+        inputId="currency"
+        styleClass="w-full"
+        [readonly]="true"
+      />
+      @if (invalid('monto')) {
+        <small class="err">Ingrese un monto válido</small>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="metodo">Método de pago <span class="req">*</span></label>
+      <p-select
+        id="metodo"
+        formControlName="metodo"
+        [options]="metodoOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccionar método"
+        appendTo="body"
+      />
+    </div>
+
+    @if (esEfectivo()) {
+      <div class="campo">
+        <label for="efectivo_recibido">Efectivo recibido</label>
+        <p-inputnumber
+          id="efectivo_recibido"
+          formControlName="efectivo_recibido"
+          [min]="0"
+          [max]="999999.99"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          prefix="L "
+          locale="en-US"
+          mode="decimal"
+          styleClass="w-full"
+        />
+        @if (form.get('efectivo_recibido')?.hasError('menor')) {
+          <small class="err">{{ form.get('efectivo_recibido')?.getError('menor') }}</small>
+        }
+      </div>
+      <div class="campo">
+        <label for="cambio">Cambio</label>
+        <p-inputnumber
+          id="cambio"
+          formControlName="cambio"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          prefix="L "
+          locale="en-US"
+          mode="decimal"
+          styleClass="w-full"
+        />
+        <small class="info">Calculado automáticamente</small>
+      </div>
+    }
+
+    <div class="campo">
+      <label for="fecha_pago">Fecha de pago <span class="req">*</span></label>
+      <p-datepicker
+        id="fecha_pago"
+        formControlName="fecha_pago"
+        dateFormat="dd/mm/yy"
+        [showIcon]="true"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="campo">
+      <label for="concepto">Concepto</label>
+      <input
+        id="concepto"
+        pInputText
+        formControlName="concepto"
+        class="w-full"
+        placeholder="Opcional"
+      />
+    </div>
+
+    <div class="campo campo-wide">
+      <label for="comprobante">Comprobante / Referencia</label>
+      <input
+        id="comprobante"
+        pInputText
+        formControlName="comprobante"
+        class="w-full"
+        placeholder="N° de cheque, transferencia, etc."
+      />
+    </div>
+
+    <div class="acciones-form">
+      <p-button
+        type="submit"
+        label="Registrar pago"
+        icon="pi pi-check"
+        styleClass="w-full"
+        [loading]="guardando()"
+      />
+      <p-button
+        type="button"
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="volver()"
+      />
+    </div>
+
+    @if (tpEnabled() && facturaSeleccionada(); as f) {
+      <div class="tp-section">
+        <div class="tp-divider"><span>O pagar con</span></div>
+        <p-button
+          label="Pagar con TodoPago"
+          icon="pi pi-credit-card"
+          severity="info"
+          styleClass="w-full"
+          [loading]="tpGenerando()"
+          (onClick)="generarLinkPago()"
+        />
+        @if (tpLink(); as link) {
+          <div class="tp-link-row">
+            <input pInputText [value]="link" readonly class="tp-link-input" />
+            <a [href]="link" target="_blank" rel="noopener">
+              <p-button icon="pi pi-external-link" severity="info" text pTooltip="Abrir link" />
+            </a>
+            <p-button
+              icon="pi pi-copy"
+              severity="secondary"
+              text
+              (onClick)="copiarLink()"
+              pTooltip="Copiar link"
+            />
+          </div>
+          <small class="tp-hint">Abrí el link en una nueva pestaña para completar el pago</small>
+        }
+      </div>
+    }
+  </form>
+</section>

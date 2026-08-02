@@ -1,0 +1,68 @@
+<section class="page">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    @for (s of [1, 2, 3]; track s) {
+      <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+    }
+  } @else if (lectura(); as l) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Lectura #{{ l.id }}</h1>
+        <p class="page-subtitle">
+          Período {{ l.periodo }} — {{ l.abonado_nombre || 'Abonado #' + l.abonado_id }}
+        </p>
+      </div>
+      <div>
+        <p-button
+          label="Editar"
+          icon="pi pi-pencil"
+          severity="warn"
+          rounded
+          [size]="selectSize"
+          (onClick)="editar()"
+        />
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          text
+          rounded
+          [size]="selectSize"
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Abonado</span><span>{{ l.abonado_nombre || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Código abonado</span><span>{{ l.abonado_codigo || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Período</span><span>{{ l.periodo }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Lectura anterior</span><span>{{ l.lectura_anterior }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Lectura actual</span><span>{{ l.lectura_actual }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Consumo m³</span><span class="consumo">{{ l.consumo_m3 }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Fecha de lectura</span
+        ><span>{{ l.fecha_lectura | date: 'yyyy-MM-dd' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Registrado por</span><span>{{ l.usuario_nombre || '—' }}</span>
+      </div>
+      <div class="ficha-item" style="grid-column: 1 / -1">
+        <span class="lbl">Observación</span>
+        <span>{{ l.observacion || 'Sin observaciones' }}</span>
+      </div>
+    </div>
+  }
+</section>

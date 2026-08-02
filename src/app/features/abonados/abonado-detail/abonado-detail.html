@@ -1,0 +1,184 @@
+<section class="page">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    @for (s of [1, 2, 3]; track s) {
+      <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+    }
+  } @else if (abonado(); as a) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">{{ a.nombre }}</h1>
+        <p class="page-subtitle">
+          Código {{ a.codigo }}
+          <p-tag
+            [value]="estadoLabel(a.estado)"
+            [severity]="severityFor(a.estado)"
+            styleClass="ml-2"
+          />
+        </p>
+      </div>
+      <div>
+        <p-button label="Editar" icon="pi pi-pencil" severity="warn" rounded (onClick)="editar()" />
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          text
+          rounded
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <!-- Ficha -->
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Cédula</span><span>{{ a.cedula || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Teléfono</span><span>{{ a.telefono || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Sector</span><span>{{ a.sector || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Medidor</span><span>{{ a.medidor_numero || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Dirección</span><span>{{ a.direccion || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Fecha de alta</span><span>{{ a.fecha_alta | date: 'yyyy-MM-dd' }}</span>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    @if (resumen(); as r) {
+      <div class="totales-grid">
+        <div class="total-card">
+          <div class="label">Total facturado</div>
+          <div class="value">{{ r.total_facturado | number: '1.2-2' }}</div>
+        </div>
+        <div class="total-card">
+          <div class="label">Total pagado</div>
+          <div class="value">{{ r.total_pagado | number: '1.2-2' }}</div>
+        </div>
+        <div class="total-card">
+          <div class="label">Saldo pendiente</div>
+          <div class="value" [class.negativo]="r.saldo_pendiente > 0">
+            {{ r.saldo_pendiente | number: '1.2-2' }}
+          </div>
+        </div>
+        <div class="total-card">
+          <div class="label">N° facturas</div>
+          <div class="value">{{ r.total_facturas }}</div>
+        </div>
+      </div>
+    }
+
+    <!-- Facturas -->
+    <div class="card">
+      <h3 class="card-title">Facturas</h3>
+      <p-table
+        [value]="facturas()"
+        size="small"
+        [tableStyle]="{ 'min-width': '700px' }"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Periodo</th>
+            <th>Consumo m³</th>
+            <th>Estado</th>
+            <th class="num">Total</th>
+            <th class="num">Pagado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-f>
+          <tr>
+            <td>{{ f.periodo }}</td>
+            <td>{{ f.consumo_m3 }}</td>
+            <td><p-tag [value]="f.estado" [severity]="severityFactura(f.estado)" /></td>
+            <td class="num monto">{{ f.total | number: '1.2-2' }}</td>
+            <td class="num monto">{{ f.total_pagado || 0 | number: '1.2-2' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center">Sin facturas registradas</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Lecturas -->
+    <div class="card">
+      <h3 class="card-title">Lecturas del medidor</h3>
+      <p-table
+        [value]="lecturas()"
+        size="small"
+        [tableStyle]="{ 'min-width': '600px' }"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Periodo</th>
+            <th>Anterior</th>
+            <th>Actual</th>
+            <th class="num">Consumo m³</th>
+            <th>Fecha</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-l>
+          <tr>
+            <td>{{ l.periodo }}</td>
+            <td>{{ l.lectura_anterior }}</td>
+            <td>{{ l.lectura_actual }}</td>
+            <td class="num monto">{{ l.consumo_m3 }}</td>
+            <td>{{ l.fecha_lectura | date: 'yyyy-MM-dd' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center">Sin lecturas registradas</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Pagos -->
+    <div class="card">
+      <h3 class="card-title">Pagos</h3>
+      <p-table
+        [value]="pagos()"
+        size="small"
+        [tableStyle]="{ 'min-width': '600px' }"
+        responsiveLayout="scroll"
+      >
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Fecha</th>
+            <th>Periodo factura</th>
+            <th>Método</th>
+            <th>Comprobante</th>
+            <th class="num">Monto</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-p>
+          <tr>
+            <td>{{ p.fecha_pago | date: 'yyyy-MM-dd' }}</td>
+            <td>{{ p.factura_periodo || '-' }}</td>
+            <td>{{ p.metodo }}</td>
+            <td>{{ p.comprobante || '-' }}</td>
+            <td class="num monto">{{ p.monto | number: '1.2-2' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center">Sin pagos registrados</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  }
+</section>

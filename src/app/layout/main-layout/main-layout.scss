@@ -1,0 +1,575 @@
+// ===== Diamond Dark Sidebar Theme =====
+
+$sidebar-width: 220px;
+$sidebar-collapsed-width: 56px;
+$topbar-height: 60px;
+
+// CSS variables estilo Diamond
+:host {
+  --d-sidebar-bg-color: rgba(11, 14, 23, 0.85);
+  --d-sidebar-bg-color-alt: rgba(11, 14, 23, 0.85);
+  --d-sidebar-border: 1px solid rgba(255, 255, 255, 0.06);
+  --d-app-name-color: #ffffff;
+  --d-menu-separator-border: 1px solid rgba(255, 255, 255, 0.08);
+  --d-menuitem-root-text-color: rgba(255, 255, 255, 0.4);
+  --d-menuitem-text-color: rgba(255, 255, 255, 0.65);
+  --d-menuitem-hover-bg: rgba(255, 255, 255, 0.06);
+  --d-menuitem-active-bg: rgba(255, 255, 255, 0.08);
+  --d-menuitem-active-text-color: rgba(255, 255, 255, 0.65);
+  --d-menuitem-active-route-text-color: #ffffff;
+  --d-menuitem-focus-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+// ===== Wrapper =====
+.layout-wrapper {
+  display: flex;
+  min-height: 100vh;
+  transition: all 0.2s ease;
+}
+
+// ===== Sidebar =====
+.sidebar {
+  width: $sidebar-width;
+  min-height: 100vh;
+  background: var(--d-sidebar-bg-color);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border-right: var(--d-sidebar-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: width 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  user-select: none;
+}
+
+// ===== Sidebar Header =====
+.sidebar-header {
+  height: $topbar-height;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem 0 1.25rem;
+  border-bottom: var(--d-menu-separator-border);
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+// ===== Pin/Anchor Button =====
+.sidebar-close-mobile {
+  display: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+}
+
+.sidebar-pin {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  display: none;
+  transition:
+    background-color 0.15s,
+    transform 0.3s;
+
+  &.visible {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &.pinned {
+    background: var(--p-primary-color, #0ea5e9);
+    border-color: var(--p-primary-color, #0ea5e9);
+  }
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--d-app-name-color);
+  font-size: 1.25rem;
+  flex: 1;
+  min-width: 0;
+
+  .sidebar-logo-img {
+    width: 2.25rem;
+    height: 2.25rem;
+    min-width: 2.25rem;
+    object-fit: contain;
+  }
+}
+
+.sidebar-title {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+}
+
+// ===== Menu Container =====
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.75rem;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  // ===== PanelMenu overrides con estilo Diamond =====
+  :deep(.p-panelmenu) {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  // Cada panel (root)
+  :deep(.p-panelmenu-panel) {
+    background: transparent;
+    border: none;
+    margin-bottom: 0.1rem;
+  }
+
+  // Separator entre root items (excepto el ultimo)
+  :deep(.p-panelmenu-panel:not(:last-child)) {
+    border-bottom: var(--d-menu-separator-border);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.35rem;
+  }
+
+  // Header / root item
+  :deep(.p-panelmenu-header) {
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+
+  :deep(.p-panelmenu-header-content) {
+    background: transparent;
+    border: none;
+    color: var(--d-menuitem-text-color);
+    border-radius: 0.5rem;
+    padding: 0;
+    transition:
+      background-color 0.15s,
+      box-shadow 0.15s;
+    outline: none;
+
+    .p-panelmenu-header-link {
+      display: flex;
+      align-items: center;
+      padding: 0.55rem 0.75rem;
+      border-radius: 0.5rem;
+      color: var(--d-menuitem-text-color);
+      font-weight: 500;
+      text-decoration: none;
+      gap: 0.5rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .p-panelmenu-header-icon {
+      color: var(--d-menuitem-text-color);
+      min-width: 1.25rem;
+      font-size: 1.1rem;
+    }
+
+    .p-panelmenu-header-label {
+      color: var(--d-menuitem-text-color);
+      font-weight: 500;
+      font-size: 0.925rem;
+    }
+
+    .p-panelmenu-submenu-icon {
+      color: var(--d-menuitem-text-color);
+      margin-left: auto;
+      flex-shrink: 0;
+      width: 0.875rem;
+      height: 0.875rem;
+      transition: transform 0.2s;
+    }
+
+    &:hover {
+      background: var(--d-menuitem-hover-bg);
+    }
+
+    &:focus-visible {
+      box-shadow: var(--d-menuitem-focus-shadow);
+    }
+  }
+
+  // Header con submenu expandido
+  :deep(.p-panelmenu-header.p-panelmenu-header-active) {
+    > .p-panelmenu-header-content {
+      .p-panelmenu-header-icon,
+      .p-panelmenu-header-label {
+        color: var(--d-menuitem-active-route-text-color);
+      }
+    }
+  }
+
+  // Content area (submenu list)
+  :deep(.p-panelmenu-content) {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  :deep(.p-panelmenu-root-list) {
+    outline: none;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  // Submenu items
+  :deep(.p-panelmenu-item) {
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+
+  :deep(.p-panelmenu-item-content) {
+    background: transparent;
+    border: none;
+    color: var(--d-menuitem-text-color);
+    border-radius: 0.5rem;
+    padding: 0;
+    transition:
+      background-color 0.15s,
+      box-shadow 0.15s;
+    outline: none;
+
+    .p-panelmenu-item-link {
+      display: flex;
+      align-items: center;
+      padding: 0.45rem 0.75rem 0.45rem 1.75rem;
+      border-radius: 0.5rem;
+      color: var(--d-menuitem-text-color);
+      font-weight: 500;
+      text-decoration: none;
+      gap: 0.5rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .p-panelmenu-item-icon {
+      color: var(--d-menuitem-text-color);
+      min-width: 1.25rem;
+      font-size: 1rem;
+    }
+
+    .p-panelmenu-item-label {
+      color: var(--d-menuitem-text-color);
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+
+    &:hover {
+      background: var(--d-menuitem-hover-bg);
+    }
+
+    &:focus-visible {
+      box-shadow: var(--d-menuitem-focus-shadow);
+    }
+  }
+
+  // Item activo (routerLinkActive) en raiz y submenu
+  :deep(.p-panelmenu-header-link.p-panelmenu-item-link-active),
+  :deep(.p-panelmenu-item-link.p-panelmenu-item-link-active) {
+    background: var(--d-menuitem-active-bg);
+
+    .p-panelmenu-header-icon,
+    .p-panelmenu-header-label,
+    .p-panelmenu-item-icon,
+    .p-panelmenu-item-label,
+    .p-panelmenu-submenu-icon {
+      color: var(--d-menuitem-active-route-text-color) !important;
+      font-weight: 600 !important;
+    }
+  }
+
+  // Highlight cuando el item esta enfocado (teclado)
+  :deep(.p-panelmenu-item.p-focus > .p-panelmenu-item-content) {
+    background: var(--d-menuitem-active-bg);
+
+    .p-panelmenu-item-icon,
+    .p-panelmenu-item-label {
+      color: var(--d-menuitem-active-route-text-color);
+      font-weight: 600;
+    }
+  }
+
+  // Sub-submenu indentacion
+  :deep(.p-panelmenu-submenu) {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border-radius: 0.5rem;
+    overflow: hidden;
+
+    .p-panelmenu-item-link {
+      padding-left: 2.75rem;
+    }
+
+    .p-panelmenu-submenu .p-panelmenu-item-link {
+      padding-left: 3.75rem;
+    }
+  }
+}
+
+// ===== Main Area =====
+.layout-main {
+  flex: 1;
+  margin-left: $sidebar-width;
+  padding-top: $topbar-height;
+  transition: margin-left 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+// ===== Topbar =====
+.topbar {
+  height: $topbar-height;
+  background: rgba(11, 14, 23, 0.85);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  gap: 1rem;
+}
+
+@media (min-width: 769px) {
+  .sidebar-hidden .sidebar {
+    width: 0;
+    min-width: 0;
+    overflow: hidden;
+    border: none;
+    border-radius: 0;
+  }
+
+  .sidebar-hidden .layout-main {
+    margin-left: 0;
+  }
+
+  .topbar {
+    left: $sidebar-width;
+    transition: left 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .sidebar-hidden .topbar {
+    left: 0;
+  }
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.9rem;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  transition:
+    border-color var(--tr-fast),
+    box-shadow var(--tr-fast),
+    background var(--tr-fast);
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.user-chip-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.user-name {
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 0.875rem;
+}
+
+.user-role {
+  text-transform: capitalize;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.user-avatar {
+  ::ng-deep .p-avatar {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: #fff;
+    font-weight: 700;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+// Botón toggle del sidebar (naranja)
+.sidebar-toggle {
+  ::ng-deep .p-button {
+    color: #fb923c;
+
+    &:hover {
+      color: #ffffff;
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.4);
+    }
+  }
+}
+
+.hidden-mobile {
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+// Botón "Perfil" (splitbutton) sobre topbar dark
+.profile-btn {
+  ::ng-deep .p-button {
+    color: rgba(255, 255, 255, 0.85);
+
+    &:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+    }
+  }
+}
+
+// ===== Content =====
+.layout-content {
+  flex: 1;
+  padding: 2rem;
+  background: #f1f5f9;
+}
+
+// ===== Mobile Responsive =====
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateY(-110%);
+    visibility: hidden;
+    transition:
+      transform 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+      visibility 0.45s;
+    z-index: 200;
+    min-height: 100vh;
+    box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+
+    .sidebar-pin {
+      display: none;
+    }
+    .sidebar-close-mobile {
+      display: flex;
+    }
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 199;
+  }
+
+  .sidebar-open {
+    .sidebar {
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    .sidebar-overlay {
+      display: block;
+    }
+  }
+
+  .layout-main {
+    margin-left: 0 !important;
+  }
+
+  .layout-content {
+    padding: 1rem;
+  }
+
+  .sidebar-collapsed .layout-main {
+    margin-left: 0;
+  }
+
+  .topbar {
+    padding: 0 0.75rem;
+    z-index: 201;
+  }
+
+  .sidebar-toggle {
+    .p-button {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
+  }
+}

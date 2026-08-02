@@ -1,0 +1,107 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Reporte de Morosidad</h1>
+      <p class="page-subtitle">Abonados con facturas pendientes o vencidas</p>
+    </div>
+    <div>
+      <p-button label="Imprimir" icon="pi pi-print" severity="info" (onClick)="imprimir()" class="no-print" />
+    </div>
+  </header>
+
+  <!-- Encabezado sólo visible al imprimir -->
+  <div class="print-only print-header">
+    <h2>Junta de Agua Potable</h2>
+    <p><strong>Reporte de Morosidad</strong></p>
+    @if (reporte(); as r) {
+      <p>Sector: {{ r.filtros.sector }}</p>
+    }
+    <p>Generado el {{ hoy() }}</p>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros card no-print">
+    <div class="campo">
+      <label>Sector</label>
+      <p-select
+        [(ngModel)]="sectorFiltro"
+        [options]="sectores()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Todos los sectores"
+        appendTo="body"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Generar" icon="pi pi-search" (onClick)="generar()" />
+      <p-button label="Limpiar" icon="pi pi-times" severity="secondary" text (onClick)="limpiarFiltros()" />
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="card">
+      <p-skeleton width="100%" height="6rem" />
+    </div>
+  } @else if (reporte(); as r) {
+    <!-- Totales -->
+    <div class="totales-grid">
+      <div class="total-card">
+        <div class="label">Abonados morosos</div>
+        <div class="value">{{ r.totales.abonados_morosos }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Facturas impagas</div>
+        <div class="value">{{ r.totales.facturas_impagas }}</div>
+      </div>
+      <div class="total-card">
+        <div class="label">Monto total</div>
+        <div class="value">L {{ r.totales.monto_total | number: '1.2-2' }}</div>
+      </div>
+    </div>
+
+    <!-- Detalle -->
+    <p-table
+      [value]="r.detalle"
+      dataKey="factura_id"
+      [rows]="50"
+      [paginator]="r.detalle.length > 50"
+      size="small"
+      [tableStyle]="{ 'min-width': '1050px' }"
+      responsiveLayout="scroll"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Código</th>
+          <th>Abonado</th>
+          <th>Sector</th>
+          <th>Teléfono</th>
+          <th>Periodo</th>
+          <th>Vencimiento</th>
+          <th class="num">Días mora</th>
+          <th class="num">Saldo</th>
+          <th>Estado</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-d>
+        <tr>
+          <td>{{ d.codigo }}</td>
+          <td>{{ d.nombre }}</td>
+          <td>{{ d.sector || '—' }}</td>
+          <td>{{ d.telefono || '—' }}</td>
+          <td>{{ d.periodo }}</td>
+          <td>{{ d.fecha_vencimiento | date: 'yyyy-MM-dd' }}</td>
+          <td class="num">
+            <p-tag [value]="d.dias_mora + ' días'" [severity]="severityDias(d.dias_mora)" />
+          </td>
+          <td class="num monto">L {{ d.total | number: '1.2-2' }}</td>
+          <td>{{ d.estado || d.abonado_estado }}</td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" class="text-center">No hay abonados morosos. 🎉</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</section>

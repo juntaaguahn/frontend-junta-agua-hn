@@ -1,0 +1,50 @@
+<section class="page">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+  } @else if (tarifa(); as t) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">{{ t.concepto }}</h1>
+        <p class="page-subtitle">
+          Tarifa
+          <p-tag [value]="t.estado" [severity]="severityFor(t.estado)" styleClass="ml-2" />
+        </p>
+      </div>
+      <div>
+        <p-button label="Editar" icon="pi pi-pencil" severity="warn" rounded (onClick)="editar()" />
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          text
+          rounded
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Concepto</span>
+        <span>{{ t.concepto }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Descripción</span>
+        <span>{{ t.descripcion || 'Sin descripción' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Valor</span>
+        <span class="valor">{{ t.valor | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Unidad</span>
+        <span>{{ t.unidad || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Estado</span>
+        <span><p-tag [value]="t.estado" [severity]="severityFor(t.estado)" /></span>
+      </div>
+    </div>
+  }
+</section>

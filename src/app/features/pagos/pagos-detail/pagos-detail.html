@@ -1,0 +1,176 @@
+<section class="page no-print">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    @for (s of [1]; track s) {
+      <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+    }
+  } @else if (pago(); as p) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Recibo #{{ p.id }}</h1>
+        <p class="page-subtitle">Pago registrado — {{ p.fecha_pago | date: 'yyyy-MM-dd' }}</p>
+      </div>
+      <div>
+        <p-button
+          label="Imprimir recibo"
+          icon="pi pi-print"
+          severity="info"
+          rounded
+          (onClick)="imprimir()"
+        />
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          rounded
+          severity="secondary"
+          text
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <div class="totales-grid">
+      <div class="total-card total-facturado">
+        <div class="label">Monto pagado</div>
+        <div class="value">{{ params.moneda() }} {{ p.monto | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card total-pagado">
+        <div class="label">Método</div>
+        <div class="value" style="text-transform: capitalize">{{ metodoLabel(p.metodo) }}</div>
+      </div>
+      <div class="total-card total-saldo">
+        <div class="label">Abonado</div>
+        <div class="value" style="font-size: 0.9rem">{{ p.abonado_nombre || '—' }}</div>
+      </div>
+    </div>
+
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Abonado</span><span>{{ p.abonado_nombre || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Código</span><span>{{ p.abonado_codigo || '—' }}</span>
+      </div>
+      @if (p.factura_periodo) {
+        <div class="ficha-item">
+          <span class="lbl">Período factura</span><span>{{ p.factura_periodo }}</span>
+        </div>
+      }
+      <div class="ficha-item">
+        <span class="lbl">Monto</span
+        ><span class="monto total-final"
+          >{{ params.moneda() }} {{ p.monto | number: '1.2-2' }}</span
+        >
+      </div>
+      @if (p.metodo === 'efectivo' && p.efectivo_recibido != null) {
+        <div class="ficha-item">
+          <span class="lbl">Efectivo recibido</span
+          ><span>{{ params.moneda() }} {{ p.efectivo_recibido | number: '1.2-2' }}</span>
+        </div>
+        <div class="ficha-item">
+          <span class="lbl">Cambio</span
+          ><span>{{ params.moneda() }} {{ p.cambio | number: '1.2-2' }}</span>
+        </div>
+      }
+      <div class="ficha-item">
+        <span class="lbl">Método</span><span>{{ metodoLabel(p.metodo) }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Fecha</span><span>{{ p.fecha_pago | date: 'yyyy-MM-dd' }}</span>
+      </div>
+      @if (p.concepto) {
+        <div class="ficha-item">
+          <span class="lbl">Concepto</span><span>{{ p.concepto }}</span>
+        </div>
+      }
+      @if (p.comprobante) {
+        <div class="ficha-item">
+          <span class="lbl">Comprobante</span><span>{{ p.comprobante }}</span>
+        </div>
+      }
+      @if (p.cajero_nombre) {
+        <div class="ficha-item">
+          <span class="lbl">Cajero</span><span>{{ p.cajero_nombre }}</span>
+        </div>
+      }
+    </div>
+  }
+</section>
+
+@if (pago(); as p) {
+  <div class="ticket-print">
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="ticket-title">{{ params.nombreEmpresa().toUpperCase() }}</div>
+        <div class="ticket-sub">Sistema de Agua Potable</div>
+        @if (params.direccionEmpresa()) {
+          <div class="ticket-sub">{{ params.direccionEmpresa() }}</div>
+        }
+        @if (params.movilEmpresa() || params.emailEmpresa()) {
+          <div class="ticket-sub">{{ params.movilEmpresa() }} {{ params.emailEmpresa() }}</div>
+        }
+        @if (params.facebookUrl()) {
+          <div class="ticket-sub">{{ params.facebookUrl() }}</div>
+        }
+        <div class="ticket-divider">==============================</div>
+        <div class="ticket-factura">RECIBO #{{ p.id }}</div>
+        <div class="ticket-divider">------------------------------</div>
+      </div>
+
+      <div class="ticket-body">
+        <div class="ticket-row">
+          <span>Abonado:</span><span>{{ p.abonado_nombre || '—' }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Código:</span><span>{{ p.abonado_codigo || '—' }}</span>
+        </div>
+        @if (p.factura_periodo) {
+          <div class="ticket-row">
+            <span>Período:</span><span>{{ p.factura_periodo }}</span>
+          </div>
+        }
+        <div class="ticket-row">
+          <span>Fecha:</span><span>{{ p.fecha_pago | date: 'yyyy-MM-dd' }}</span>
+        </div>
+        @if (p.metodo === 'efectivo' && p.efectivo_recibido != null) {
+          <div class="ticket-row">
+            <span>Efectivo:</span
+            ><span>{{ params.moneda() }} {{ p.efectivo_recibido | number: '1.2-2' }}</span>
+          </div>
+          <div class="ticket-row">
+            <span>Cambio:</span><span>{{ params.moneda() }} {{ p.cambio | number: '1.2-2' }}</span>
+          </div>
+        }
+        <div class="ticket-row">
+          <span>Método:</span><span>{{ metodoLabel(p.metodo) }}</span>
+        </div>
+        @if (p.concepto) {
+          <div class="ticket-row">
+            <span>Concepto:</span><span>{{ p.concepto }}</span>
+          </div>
+        }
+        @if (p.comprobante) {
+          <div class="ticket-row">
+            <span>Ref:</span><span>{{ p.comprobante }}</span>
+          </div>
+        }
+        <div class="ticket-divider">==============================</div>
+        <div class="ticket-row ticket-total">
+          <span>TOTAL RECIBIDO</span
+          ><span class="tr">{{ params.moneda() }} {{ p.monto | number: '1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="ticket-footer">
+        <div class="ticket-divider">==============================</div>
+        @if (params.mensajePago()) {
+          <div class="ticket-gracia">{{ params.mensajePago() }}</div>
+        }
+        <div class="ticket-sub">Recibo generado electrónicamente</div>
+        @if (params.representanteLegal()) {
+          <div class="ticket-legales">Atte. {{ params.representanteLegal() }}</div>
+        }
+      </div>
+    </div>
+  </div>
+}

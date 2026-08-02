@@ -1,0 +1,65 @@
+<div class="chat-panel">
+  <div class="chat-body" #scrollArea>
+    @if (mensajes().length === 0) {
+      <div class="chat-welcome">
+        <div class="welcome-avatar"><i class="pi pi-android"></i></div>
+        @if (esAbonado()) {
+          <p>
+            Hola, soy el asistente de la junta de agua. Puedo ayudarte con: cómo pagar tu factura,
+            tarifas, órdenes de corte y horarios de atención. ¿En qué te ayudo?
+          </p>
+        } @else {
+          <p>
+            Hola, soy el asistente interno. Puedo guiarte para registrar pagos, tomar lecturas,
+            generar reportes, consultar períodos, tarifas y más. ¿En qué te ayudo?
+          </p>
+        }
+        <div class="chat-sugerencias">
+          @for (sug of sugerenciasMostrar(); track sug) {
+            <button class="sugerencia-btn" (click)="usarSugerencia(sug)">
+              <i class="pi pi-angle-right"></i>
+              {{ sug }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+    <div class="chat-mensajes">
+      @for (m of mensajes(); track $index) {
+        <div class="burbuja" [class.usuario]="m.rol === 'usuario'" [class.error]="m.error">
+          <div class="burbuja-label">{{ m.rol === 'usuario' ? 'Tú' : 'Asistente' }}</div>
+          <div class="burbuja-texto">{{ m.contenido }}</div>
+        </div>
+      }
+      @if (enviando()) {
+        <div class="burbuja asistente">
+          <div class="burbuja-label">Asistente</div>
+          <div class="burbuja-texto">
+            <span class="escribiendo"> <span></span><span></span><span></span> </span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <footer class="chat-footer">
+    <input
+      pInputText
+      [ngModel]="texto()"
+      (ngModelChange)="texto.set($event)"
+      (keyup.enter)="enviar()"
+      [disabled]="enviando()"
+      maxlength="2000"
+      placeholder="Escribe tu consulta..."
+      autocomplete="off"
+      class="chat-input"
+    />
+    <p-button
+      icon="pi pi-send"
+      iconOnly
+      severity="warn"
+      [disabled]="enviando() || !texto().trim()"
+      (onClick)="enviar()"
+    ></p-button>
+  </footer>
+</div>

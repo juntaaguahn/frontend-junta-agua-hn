@@ -1,0 +1,137 @@
+<p-toast />
+
+<section class="lecturas-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Toma de Lecturas</h1>
+      <p class="page-subtitle">
+        Diseñado para teléfonos y tablets de operarios en campo. Ingreso directo de metros cúbicos y
+        alerta de fugas.
+      </p>
+    </div>
+    <button
+      pButton
+      pRipple
+      label="Nueva Lectura"
+      icon="pi pi-plus"
+      class="p-button-info p-button-rounded"
+      (click)="irALectura()"
+    ></button>
+  </header>
+
+  <div class="mode-badge"><i class="pi pi-mobile"></i> Modo Táctil Móvil Activo</div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <p-select
+      [options]="sectores()"
+      [(ngModel)]="sectorFiltro"
+      placeholder="Todos los Sectores"
+      styleClass="w-full"
+      [showClear]="true"
+    />
+    <p-select
+      [options]="abonadosOpts()"
+      [(ngModel)]="abonadoFiltro"
+      placeholder="Todos los Abonados"
+      styleClass="w-full"
+      [showClear]="true"
+      optionLabel="nombre"
+      optionValue="id"
+      [filter]="true"
+      filterBy="nombre,codigo"
+    />
+  </div>
+
+  <!-- Loading -->
+  @if (cargando()) {
+    <div class="cards-grid">
+      @for (s of [1, 2, 3, 4, 5]; track s) {
+        <div class="card-skeleton">
+          <p-skeleton width="60%" height="1.5rem" styleClass="mb-2" />
+          <p-skeleton width="100%" height="0.75rem" styleClass="mb-1" />
+          <p-skeleton width="80%" height="0.75rem" styleClass="mb-1" />
+          <p-skeleton width="100%" height="2.5rem" borderRadius="0.75rem" />
+        </div>
+      }
+    </div>
+  } @else if (lecturasFiltradas().length === 0) {
+    <div class="empty-state">
+      <i class="pi pi-calculator empty-icon"></i>
+      <h3>No hay lecturas</h3>
+      <p>No se encontraron lecturas para el período seleccionado.</p>
+    </div>
+  } @else {
+    <!-- Cards -->
+    <div class="cards-grid">
+      @for (l of lecturasFiltradas(); track l.id) {
+        @let st = statusLectura(l);
+        <div class="lectura-card" (click)="verLectura(l.id)" role="button" tabindex="0">
+          <div class="card-top">
+            <span class="card-codigo">{{ l.abonado_codigo }}</span>
+            <span class="card-status {{ statusClass(st) }}">
+              <i [class]="statusIcon(st)"></i>
+              {{ statusLabel(st) }}
+            </span>
+          </div>
+          <h3 class="card-nombre">{{ l.abonado_nombre }}</h3>
+          <div class="card-details">
+            @if (l.sector) {
+              <div class="detail-row">
+                <i class="pi pi-map-marker"></i>
+                <span>{{ l.sector }}</span>
+              </div>
+            }
+            <div class="detail-row">
+              <i class="pi pi-sliders-h"></i>
+              <span>Medidor: {{ l.medidor_numero || '—' }}</span>
+            </div>
+          </div>
+          <div class="lectura-values">
+            <div class="val-item">
+              <span class="val-label">Lectura Anterior</span>
+              <span class="val-number">{{ l.lectura_anterior || 0 }} m³</span>
+            </div>
+            <div class="val-item">
+              <span class="val-label">Lectura Actual</span>
+              <span
+                class="val-number"
+                [class.text-green-600]="l.lectura_actual"
+                [class.text-slate-400]="!l.lectura_actual"
+              >
+                {{ l.lectura_actual || '—' }} m³
+              </span>
+            </div>
+          </div>
+          @if (st === 'atipico') {
+            <div class="alerta-consumo">
+              <i class="pi pi-exclamation-triangle"></i>
+              Alerta de consumo atípico (+{{ l.consumo_m3 }} m³). Posible fuga interna.
+            </div>
+          }
+          <div class="card-actions">
+            @if (!l.lectura_actual) {
+              <button
+                pButton
+                pRipple
+                label="Ingresar Lectura"
+                icon="pi pi-plus"
+                class="p-button-info p-button-rounded p-button-sm"
+                (click)="irALectura(l.abonado_id); $event.stopPropagation()"
+              ></button>
+            } @else {
+              <button
+                pButton
+                pRipple
+                label="Actualizar"
+                icon="pi pi-refresh"
+                class="p-button-outlined p-button-rounded p-button-sm"
+                (click)="irALectura(l.abonado_id); $event.stopPropagation()"
+              ></button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,128 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Nueva asignación</h1>
+      <p class="page-subtitle">Asignar un período de facturación a un usuario</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="guardar()" class="card form-grid">
+    <div class="campo">
+      <label for="upUsuario">Usuario <span class="req">*</span></label>
+
+      @if (cargandoUsuarios()) {
+        <p-skeleton height="2.75rem" borderRadius="8px" />
+      } @else if (usuarios().length === 0) {
+        <div class="campo-vacio">No hay usuarios disponibles para asignar.</div>
+      } @else {
+        <p-select
+          id="upUsuario"
+          formControlName="usuarioId"
+          [options]="usuarios()"
+          optionLabel="nombre"
+          optionValue="id"
+          [showClear]="true"
+          appendTo="body"
+          filter
+          filterBy="nombre,username"
+          placeholder="Seleccionar usuario"
+        />
+      }
+    </div>
+
+    <div class="campo">
+      <label for="upPeriodo">Período <span class="req">*</span></label>
+
+      @if (cargandoPeriodos()) {
+        <p-skeleton height="2.75rem" borderRadius="8px" />
+      } @else if (periodos().length === 0) {
+        <div class="campo-vacio">No hay períodos creados.</div>
+      } @else {
+        <p-select
+          id="upPeriodo"
+          formControlName="periodoId"
+          [options]="periodoOptions()"
+          optionLabel="label"
+          optionValue="id"
+          [showClear]="true"
+          appendTo="body"
+          placeholder="Seleccionar período"
+        />
+      }
+    </div>
+
+    <div class="campo campo-wide">
+      <label>Resumen de la asignación</label>
+
+      @if (usuarioSeleccionado() || periodoSeleccionado()) {
+        <div class="resumen">
+          @if (usuarioSeleccionado(); as u) {
+            <div class="resumen-item">
+              <i class="pi pi-user"></i>
+              <div class="resumen-info">
+                <span class="resumen-label">Usuario</span>
+                <span class="resumen-valor">{{ u.nombre }}</span>
+                <span class="resumen-sub">{{ u.username }}</span>
+              </div>
+              <p-tag [value]="u.rol" [severity]="rolSeverity[u.rol]" />
+            </div>
+          } @else {
+            <div class="resumen-item resumen-vacio">
+              <i class="pi pi-user"></i>
+              <span class="resumen-label">Selecciona un usuario</span>
+            </div>
+          }
+
+          @if (periodoSeleccionado(); as p) {
+            <div class="resumen-item">
+              <i class="pi pi-calendar"></i>
+              <div class="resumen-info">
+                <span class="resumen-label">Período</span>
+                <span class="resumen-valor">{{ labelPeriodo(p) }}</span>
+              </div>
+              <p-tag
+                [value]="periodoStatusLabel(p.status)"
+                [severity]="periodoStatusSeverity(p.status)"
+              />
+            </div>
+          } @else {
+            <div class="resumen-item resumen-vacio">
+              <i class="pi pi-calendar"></i>
+              <span class="resumen-label">Selecciona un período</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="resumen resumen-vacio-total">
+          <i class="pi pi-info-circle"></i>
+          <span>Selecciona un usuario y un período para ver el resumen.</span>
+        </div>
+      }
+    </div>
+
+    <div class="acciones-form">
+      <p-button
+        type="button"
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="volver()"
+      />
+      <p-button
+        type="submit"
+        label="Asignar"
+        icon="pi pi-check"
+        [loading]="guardando()"
+        [disabled]="!puedeGuardar()"
+      />
+    </div>
+  </form>
+</section>

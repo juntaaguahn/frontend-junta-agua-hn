@@ -1,0 +1,131 @@
+<p-toast />
+<p-confirmdialog />
+
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Sectores</h1>
+      <p class="page-subtitle">Catálogo de sectores para asignar a los abonados</p>
+    </div>
+    <p-button label="Nuevo sector" icon="pi pi-plus" rounded (onClick)="abrirNuevo()" />
+  </header>
+
+  <div class="filtros card">
+    <div class="campo">
+      <label>Buscar</label>
+      <input
+        pInputText
+        type="text"
+        placeholder="Descripción..."
+        [ngModel]="q()"
+        (ngModelChange)="q.set($event)"
+        (keyup.enter)="buscar()"
+      />
+    </div>
+    <div class="campo">
+      <label>Estado</label>
+      <p-select
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="statusFiltro()"
+        (onChange)="statusFiltro.set($event.value); buscar()"
+        placeholder="Todos"
+      />
+    </div>
+    <div class="campo acciones">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="buscar()" />
+      <p-button
+        label="Limpiar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="limpiarFiltros()"
+      />
+    </div>
+  </div>
+
+  <p-dataview
+    [value]="filtered()"
+    [loading]="cargando()"
+    dataKey="sectorId"
+    [paginator]="true"
+    [rows]="20"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords}"
+  >
+    <ng-template #list let-items>
+      <div class="dv-cards">
+        @for (s of items; track s.sectorId) {
+          <div class="dv-card">
+            <div class="dv-top">
+              <span class="dv-title">{{ s.descripcion }}</span>
+              <p-tag [value]="statusLabel(s.status)" [severity]="statusSeverity(s.status)" />
+            </div>
+
+            <div class="dv-actions">
+              <p-button
+                icon="pi pi-pencil"
+                pTooltip="Editar"
+                (onClick)="abrirEditar(s)"
+                severity="warn"
+                text
+                rounded
+              />
+              <p-button
+                icon="pi pi-trash"
+                pTooltip="Eliminar"
+                (onClick)="eliminar(s)"
+                severity="danger"
+                text
+                rounded
+              />
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <div class="text-center p-3">No hay sectores que coincidan con los filtros.</div>
+    </ng-template>
+  </p-dataview>
+</section>
+
+<p-dialog
+  [header]="editando() ? 'Editar sector' : 'Nuevo sector'"
+  [modal]="true"
+  [(visible)]="dialogVisible"
+  [style]="{ width: '400px', maxWidth: '92vw' }"
+  appendTo="body"
+>
+  <div class="p-fluid">
+    <div class="campo">
+      <label for="sectorDesc">Descripción</label>
+      <input
+        pInputText
+        id="sectorDesc"
+        [(ngModel)]="formDescripcion"
+        maxlength="150"
+        placeholder="Nombre del sector"
+        (keyup.enter)="guardar()"
+      />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      type="button"
+      label="Cancelar"
+      severity="secondary"
+      (onClick)="dialogVisible.set(false)"
+    />
+    <p-button
+      type="button"
+      label="Guardar"
+      icon="pi pi-check"
+      [loading]="guardando()"
+      (onClick)="guardar()"
+    />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,21 @@
+@if (offline()) {
+  <div class="offline-banner" role="status">
+    <div class="offline-banner-body">
+      <i class="pi pi-wifi"></i>
+      <span class="offline-banner-text"
+        >Sin conexión al servidor — mostrando datos guardados localmente.</span
+      >
+      @if (pendingCount() > 0) {
+        <span class="offline-banner-badge">Cambios pendientes: {{ pendingCount() }}</span>
+      }
+      <button type="button" class="offline-banner-btn" (click)="retry()">Reintentar</button>
+    </div>
+  </div>
+} @else if (syncing()) {
+  <div class="offline-banner offline-banner--syncing" role="status">
+    <div class="offline-banner-body">
+      <i class="pi pi-spin pi-spinner"></i>
+      <span class="offline-banner-text">Sincronizando cambios con el servidor…</span>
+    </div>
+  </div>
+}

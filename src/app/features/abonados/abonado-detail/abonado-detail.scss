@@ -1,0 +1,55 @@
+:host ::ng-deep .p-tag.ml-2 {
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.75rem;
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1.5rem;
+
+  .ficha-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    .lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    span:last-child {
+      color: #1e293b;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.num {
+  text-align: right;
+}
+
+.negativo {
+  color: #ef4444 !important;
+}
+
+@media (max-width: 640px) {
+  .ficha {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1rem;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+  }
+}

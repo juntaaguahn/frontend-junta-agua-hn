@@ -1,0 +1,227 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ titulo() }}</h1>
+      <p class="page-subtitle">Registro de factura de consumo de agua</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      (onClick)="volver()"
+    />
+  </header>
+
+  @if (cargando()) {
+    <div class="card">Cargando datos...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="card form-grid">
+      <div class="campo">
+        <label for="abonado_id">Abonado <span class="req">*</span></label>
+        <p-select
+          id="abonado_id"
+          formControlName="abonado_id"
+          [options]="abonados()"
+          optionLabel="nombre"
+          optionValue="id"
+          [showClear]="!esEdicion()"
+          [filter]="true"
+          filterPlaceholder="Buscar abonado..."
+          appendTo="body"
+          [disabled]="esEdicion()"
+        />
+        @if (invalid('abonado_id')) {
+          <small class="err">El abonado es obligatorio</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="periodo">Período <span class="req">*</span></label>
+        <input
+          pInputText
+          id="periodo"
+          formControlName="periodo"
+          maxlength="7"
+          placeholder="YYYY-MM"
+          [ngClass]="{ 'ng-invalid': invalid('periodo') }"
+        />
+        @if (invalid('periodo')) {
+          <small class="err">Ingrese un período válido (YYYY-MM)</small>
+        }
+      </div>
+
+      @if (buscandoLectura()) {
+        <div class="campo campo-lectura">
+          <label>Buscando lectura...</label>
+          <div class="lectura-spinner">
+            <i class="pi pi-spin pi-spinner"></i> Consultando lecturas del período...
+          </div>
+        </div>
+      } @else if (lecturaEncontrada(); as l) {
+        <div class="campo campo-lectura">
+          <label>Lectura encontrada</label>
+          <div class="lectura-info">
+            <span class="lectura-item"
+              >Anterior: <strong>{{ l.lectura_anterior }}</strong></span
+            >
+            <span class="lectura-item"
+              >Actual: <strong>{{ l.lectura_actual }}</strong></span
+            >
+            <span class="lectura-item"
+              >Consumo: <strong class="consumo-valor">{{ l.consumo_m3 }} m³</strong></span
+            >
+          </div>
+        </div>
+      }
+
+      <div class="campo">
+        <label for="consumo_m3">Consumo m³ <span class="req">*</span></label>
+        <p-inputnumber
+          id="consumo_m3"
+          formControlName="consumo_m3"
+          [min]="0"
+          [showButtons]="true"
+          [step]="1"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="subtotal_agua">Subtotal agua</label>
+        <p-inputnumber
+          id="subtotal_agua"
+          formControlName="subtotal_agua"
+          [min]="0"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          [showButtons]="true"
+          [step]="0.25"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="excedente">Excedente</label>
+        <p-inputnumber
+          id="excedente"
+          formControlName="excedente"
+          [min]="0"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          [showButtons]="true"
+          [step]="0.25"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="alcantarillado">Alcantarillado</label>
+        <p-inputnumber
+          id="alcantarillado"
+          formControlName="alcantarillado"
+          [min]="0"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          [showButtons]="true"
+          [step]="0.25"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="mora">Mora</label>
+        <p-inputnumber
+          id="mora"
+          formControlName="mora"
+          [min]="0"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          [showButtons]="true"
+          [step]="0.25"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="multas">Multas</label>
+        <p-inputnumber
+          id="multas"
+          formControlName="multas"
+          [min]="0"
+          mode="currency"
+          currency="USD"
+          locale="en-US"
+          [showButtons]="true"
+          [step]="0.25"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Total</label>
+        <div class="total-valor">{{ form.get('total')?.value | number: '1.2-2' }}</div>
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado <span class="req">*</span></label>
+        <p-select
+          id="estado"
+          formControlName="estado"
+          [options]="estadoOptions"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="fecha_emision">Fecha de emisión <span class="req">*</span></label>
+        <p-datepicker
+          id="fecha_emision"
+          formControlName="fecha_emision"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="fecha_vencimiento">Fecha de vencimiento <span class="req">*</span></label>
+        <p-datepicker
+          id="fecha_vencimiento"
+          formControlName="fecha_vencimiento"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="acciones-form">
+        <p-button
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          (onClick)="volver()"
+        />
+        <p-button type="submit" label="Guardar" icon="pi pi-check" [loading]="guardando()" />
+      </div>
+    </form>
+  }
+</section>
+
+<p-dialog
+  header="Factura guardada"
+  [(visible)]="showImprimirDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  styleClass="imprimir-dialog"
+>
+  <p>¿Desea imprimir la factura?</p>
+  <ng-template pTemplate="footer">
+    <p-button label="No" icon="pi pi-times" severity="secondary" text (onClick)="noImprimir()" />
+    <p-button label="Sí, imprimir" icon="pi pi-print" severity="info" (onClick)="imprimirSi()" />
+  </ng-template>
+</p-dialog>

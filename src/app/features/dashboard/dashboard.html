@@ -1,0 +1,213 @@
+<section class="dashboard-page">
+  @if (cargando()) {
+    <div class="grid grid-4 gap-4 mb-4">
+      @for (s of [1, 2, 3, 4]; track s) {
+        <p-skeleton width="100%" height="120px" styleClass="rounded-2xl" />
+      }
+    </div>
+    <p-skeleton width="100%" height="300px" styleClass="rounded-2xl mb-4" />
+    <p-skeleton width="100%" height="200px" styleClass="rounded-2xl" />
+  } @else if (stats(); as s) {
+    <!-- Banner -->
+    <div class="banner">
+      <div class="banner-content">
+        <span class="banner-badge">
+          <i class="pi pi-check-circle"></i> Sistema Operativo en Línea
+        </span>
+        <h1 class="banner-title">Panel de Control Administrativo</h1>
+        <p class="banner-sub">
+          Gestión simplificada para el cobro de agua potable, control de lecturas, caja contable y
+          nómina de abonados del sector.
+        </p>
+        <div class="banner-actions">
+          <button
+            pButton
+            pRipple
+            label="Cobrar Factura"
+            icon="pi pi-credit-card"
+            class="p-button-success p-button-rounded"
+            (click)="navegar('/pagos/nuevo')"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Nueva Lectura"
+            icon="pi pi-calculator"
+            class="p-button-info p-button-rounded"
+            (click)="navegar('/lecturas/nuevo')"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="Registrar Gasto"
+            icon="pi pi-receipt"
+            class="p-button-warning p-button-rounded"
+            (click)="navegar('/caja')"
+          ></button>
+          <button
+            pButton
+            pRipple
+            label="+ Nuevo Abonado"
+            icon="pi pi-user-plus"
+            class="p-button-help p-button-outlined p-button-rounded"
+            (click)="navegar('/abonados/nuevo')"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-4 gap-4">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Total Recaudado (Mes)</span>
+          <div class="kpi-icon green"><i class="pi pi-dollar"></i></div>
+        </div>
+        <div class="kpi-value">{{ cs }}{{ s.recaudoMes | number: '1.2-2' }}</div>
+        <div class="kpi-footer">
+          <i class="pi pi-arrow-up text-green-600"></i>
+          <span>{{ s.alertas.facturasVencidas.cantidad }} Facturas Cobradas</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Abonados Activos</span>
+          <div class="kpi-icon blue"><i class="pi pi-users"></i></div>
+        </div>
+        <div class="kpi-value">
+          {{ s.abonados.activos }} <span class="kpi-value-sub">/ {{ s.abonados.total }}</span>
+        </div>
+        <div class="kpi-footer">
+          <span>Al día: {{ s.abonados.activos - s.alertas.facturasVencidas.cantidad }}</span>
+          <span class="text-red-600 font-bold">Cortados: {{ s.abonados.cortados }}</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Porcentaje de Mora</span>
+          <div class="kpi-icon amber"><i class="pi pi-exclamation-triangle"></i></div>
+        </div>
+        <div class="kpi-value text-amber-700">{{ moraPorcentaje() }}%</div>
+        <div class="kpi-footer">
+          <span class="font-bold text-amber-800"
+            >{{ s.alertas.facturasVencidas.cantidad }} Abonados en Mora</span
+          >
+          <button
+            pButton
+            pRipple
+            icon="pi pi-arrow-right"
+            class="p-button-text p-button-sm"
+            (click)="navegar('/reportes/morosidad')"
+          ></button>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Egresos del Mes</span>
+          <div class="kpi-icon rose"><i class="pi pi-chart-line"></i></div>
+        </div>
+        <div class="kpi-value text-rose-700">{{ cs }}{{ s.egresosMes | number: '1.2-2' }}</div>
+        <div class="kpi-footer">
+          <span class="font-bold">Saldo Caja: {{ cs }}{{ s.saldoCaja | number: '1.2-2' }}</span>
+          <button
+            pButton
+            pRipple
+            icon="pi pi-arrow-right"
+            class="p-button-text p-button-sm"
+            (click)="navegar('/caja')"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico + Alertas -->
+    <div class="grid grid-3 gap-4">
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h3>Ingresos Recaudados por Concepto</h3>
+            <p class="card-sub">Desglose de recaudación de hoy</p>
+          </div>
+          <span class="card-badge">Hoy</span>
+        </div>
+        <div class="chart-container">
+          <p-chart
+            type="bar"
+            [data]="chartConceptosData()"
+            [options]="chartConceptosOptions"
+            height="260px"
+          />
+        </div>
+        <div class="chart-legend">
+          @for (item of chartConceptosData()?.datasets[0]?.data; track $index) {
+            <div class="legend-item">
+              <span
+                class="legend-dot"
+                [style.background]="chartConceptosData()?.datasets[0]?.backgroundColor[$index]"
+              ></span>
+              <span>{{ chartConceptosData()?.labels[$index] }}</span>
+              <strong>{{ cs }}{{ item | number: '1.2-2' }}</strong>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="card alerts-card">
+        <div class="card-header">
+          <div>
+            <h3><i class="pi pi-exclamation-circle text-amber-500"></i> Alertas y Novedades</h3>
+            <p class="card-sub">Requieren atención inmediata de la directiva</p>
+          </div>
+        </div>
+        <div class="alerts-list">
+          @if (s.alertas.consumosAtipicos.length > 0) {
+            <div class="alert-item warning">
+              <div class="alert-head">
+                <i class="pi pi-exclamation-triangle"></i>
+                <span>Consumo Atípico Detectado</span>
+                <span class="alert-badge">{{ s.alertas.consumosAtipicos[0].abonado_codigo }}</span>
+              </div>
+              <p class="alert-name">{{ s.alertas.consumosAtipicos[0].abonado_nombre }}</p>
+              <p class="alert-desc">
+                Alerta de consumo atípico (+{{ s.alertas.consumosAtipicos[0].consumo_m3 }} m³).
+                Posible fuga interna en el domicilio.
+              </p>
+            </div>
+          }
+          @if (s.alertas.ordenesCortePendientes > 0) {
+            <div class="alert-item danger">
+              <div class="alert-head">
+                <i class="pi pi-trash"></i>
+                <span>Abonados con Orden de Corte ({{ s.alertas.ordenesCortePendientes }})</span>
+              </div>
+              <p class="alert-desc">
+                {{ s.alertas.facturasVencidas.cantidad }} abonados superan los 60 días de mora. Se
+                recomienda emitir notificación formal.
+              </p>
+              <button
+                pButton
+                pRipple
+                label="Gestionar Órdenes de Corte"
+                icon="pi pi-arrow-right"
+                class="p-button-text p-button-sm p-0"
+                (click)="navegar('/reportes/morosidad')"
+              ></button>
+            </div>
+          }
+          @if (s.alertas.consumosAtipicos.length === 0 && s.alertas.ordenesCortePendientes === 0) {
+            <div class="alert-item success">
+              <i class="pi pi-check-circle text-green-600 text-xl"></i>
+              <p>No hay alertas pendientes. El sistema opera con normalidad.</p>
+            </div>
+          }
+        </div>
+        <div class="alert-tip">
+          <i class="pi pi-info-circle text-blue-600"></i>
+          <span
+            ><strong>Tip para el Operador de Campo:</strong> Puede utilizar el módulo de Lecturas
+            directamente desde su teléfono o tablet sin necesidad de conexión constante.</span
+          >
+        </div>
+      </div>
+    </div>
+  }
+</section>

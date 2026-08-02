@@ -1,0 +1,58 @@
+# -----------------------------------------------------------------------------
+# Ejemplo de configuración Nginx para servir el build de producción del frontend
+# (dist/frontend/browser) y hacer proxy inverso de la API al backend Node.
+#
+# Ajusta server_name, las rutas a dist y el puerto del backend antes de usar.
+# Instala en: /etc/nginx/sites-available/junta-agua  →  ln -s a sites-enabled
+# -----------------------------------------------------------------------------
+
+server {
+    listen 80;
+    server_name juntadeagua.example.com;
+
+    # Redirigir HTTP -> HTTPS (FASE 4: forzar HTTPS en producción)
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name juntadeagua.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/juntadeagua.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/juntadeagua.example.com/privkey.pem;
+
+    # ---- Cabeceras de seguridad (FASE 4) ----
+    # HSTS: obliga HTTPS al navegador (30 días; subdominios una vez validado).
+    add_header Strict-Transport-Security "max-age=2592000; includeSubDomains" always;
+    # Anti-clickjacking (el CSP del HTML ya incluye frame-ancestors 'none').
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-XSS-Protection "0" always;   # desactivado: CSP cubre XSS
+
+    # Root del build Angular
+    root /var/www/junta-agua/frontend/browser;
+    index index.html;
+
+    # SPA: servir index.html para rutas no encontradas (pushState)
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Assets estáticos con caché larga (hasheados por ng build)
+    location ~* \.(?:js|css|woff2?|png|jpg|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Proxy inverso a la API (mismo origen => CSP connect-src 'self' OK)
+    location /api/ {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

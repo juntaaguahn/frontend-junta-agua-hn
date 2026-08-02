@@ -1,0 +1,9 @@
+:host ::ng-deep {
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .monto {
+    font-weight: 600;
+  }
+}

@@ -1,0 +1,479 @@
+<section class="page no-print">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    @for (s of [1, 2]; track s) {
+      <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+    }
+  } @else if (factura(); as f) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Cobrar factura #{{ f.id }}</h1>
+        <p class="page-subtitle">
+          Período {{ f.periodo }} — {{ f.abonado_nombre || 'Abonado #' + f.abonado_id }}
+          <p-tag [value]="f.estado" [severity]="severityFor(f.estado)" styleClass="ml-2" />
+        </p>
+      </div>
+      <div style="display: flex; gap: 0.5rem">
+        <p-button
+          icon="pi pi-whatsapp"
+          severity="success"
+          [rounded]="true"
+          pTooltip="Compartir por WhatsApp"
+          (onClick)="compartir()"
+        />
+        <p-button
+          icon="pi pi-envelope"
+          severity="help"
+          [rounded]="true"
+          pTooltip="Enviar por correo"
+          (onClick)="abrirCorreo()"
+        />
+        @if (f.estado !== 'pagada') {
+          <p-button
+            icon="pi pi-credit-card"
+            severity="info"
+            [rounded]="true"
+            [loading]="tpGenerando()"
+            pTooltip="Pasarela de Pago"
+            (onClick)="generarLinkPago()"
+          />
+        }
+        @if (f.estado !== 'pagada' && f.estado !== 'anulada') {
+          <p-button
+            icon="pi pi-pencil"
+            severity="warn"
+            [rounded]="true"
+            pTooltip="Editar"
+            (onClick)="editar()"
+          />
+        }
+        <p-button
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          text
+          [rounded]="true"
+          pTooltip="Volver"
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <div class="totales-grid">
+      <div class="total-card total-facturado">
+        <div class="label">Total facturado</div>
+        <div class="value">{{ f.total | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card total-pagado">
+        <div class="label">Total pagado</div>
+        <div class="value">{{ f.total_pagado || 0 | number: '1.2-2' }}</div>
+      </div>
+      <div class="total-card total-saldo">
+        <div class="label">Saldo pendiente</div>
+        <div class="value" [class.negativo]="saldo() > 0">{{ saldo() | number: '1.2-2' }}</div>
+      </div>
+    </div>
+
+    @if (saldo() > 0) {
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="card cobro-form">
+        <h3 class="cobro-title"><i class="pi pi-wallet"></i> Cobro rápido</h3>
+
+        <div class="cobro-grid">
+          <div class="campo">
+            <label for="monto">Monto a cobrar <span class="req">*</span></label>
+            <p-inputnumber
+              id="monto"
+              formControlName="monto"
+              [min]="0.01"
+              [max]="999999.99"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              prefix="L "
+              locale="en-US"
+              mode="decimal"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="metodo">Método de pago <span class="req">*</span></label>
+            <p-select
+              id="metodo"
+              formControlName="metodo"
+              [options]="metodoOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar método"
+              appendTo="body"
+              styleClass="w-full"
+            />
+          </div>
+
+          @if (esEfectivo()) {
+            <div class="campo">
+              <label for="efectivo_recibido">Efectivo recibido</label>
+              <p-inputnumber
+                id="efectivo_recibido"
+                formControlName="efectivo_recibido"
+                [min]="0"
+                [max]="999999.99"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+                prefix="L "
+                locale="en-US"
+                mode="decimal"
+                styleClass="w-full"
+              />
+              @if (form.get('efectivo_recibido')?.hasError('menor')) {
+                <small class="err">{{ form.get('efectivo_recibido')?.getError('menor') }}</small>
+              }
+            </div>
+            <div class="campo">
+              <label for="cambio">Cambio</label>
+              <p-inputnumber
+                id="cambio"
+                formControlName="cambio"
+                [minFractionDigits]="2"
+                [maxFractionDigits]="2"
+                prefix="L "
+                locale="en-US"
+                mode="decimal"
+                styleClass="w-full"
+              />
+              <small class="info">Calculado automáticamente</small>
+            </div>
+          }
+
+          <div class="campo">
+            <label for="fecha_pago">Fecha de pago <span class="req">*</span></label>
+            <p-datepicker
+              id="fecha_pago"
+              formControlName="fecha_pago"
+              dateFormat="dd/mm/yy"
+              [showIcon]="true"
+              appendTo="body"
+              styleClass="w-full"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="comprobante">Comprobante / Referencia</label>
+            <input
+              id="comprobante"
+              pInputText
+              formControlName="comprobante"
+              class="w-full"
+              placeholder="N° de cheque, transferencia, etc."
+            />
+          </div>
+        </div>
+
+        <div class="acciones-form">
+          <p-button
+            type="submit"
+            label="Registrar pago"
+            icon="pi pi-check"
+            styleClass="w-full"
+            [loading]="guardando()"
+          />
+        </div>
+
+        @if (f.estado !== 'pagada') {
+          <div class="tp-section">
+            <div class="tp-divider"><span>O cobrar en línea</span></div>
+            <p-button
+              label="Generar link de pago (TodoPago)"
+              icon="pi pi-credit-card"
+              severity="info"
+              [rounded]="true"
+              styleClass="w-full"
+              [loading]="tpGenerando()"
+              (onClick)="generarLinkPago()"
+            />
+          </div>
+        }
+      </form>
+    } @else {
+      <div class="card cobro-completado">
+        <i class="pi pi-check-circle"></i>
+        <span>Factura completamente pagada — saldo en cero</span>
+      </div>
+    }
+
+    @if (tpLink() || tpOperationId()) {
+      <div class="card tp-card">
+        <div class="tp-header">
+          <i class="pi pi-credit-card"></i>
+          <span>Pago en línea — TodoPago</span>
+        </div>
+
+        @if (tpStatus() === 'completed') {
+          <div class="tp-status tp-success"><i class="pi pi-check-circle"></i> Pago confirmado</div>
+        } @else if (tpStatus() === 'failed' || tpStatus() === 'expired') {
+          <div class="tp-status tp-error">
+            <i class="pi pi-times-circle"></i> Pago
+            {{ tpStatus() === 'failed' ? 'falló' : 'expirado' }}
+          </div>
+          <p-button
+            label="Generar nuevo link"
+            icon="pi pi-refresh"
+            severity="info"
+            [rounded]="true"
+            (onClick)="generarLinkPago()"
+          />
+        } @else {
+          <div class="tp-status tp-pending">
+            <i class="pi pi-spin pi-spinner"></i> Esperando pago…
+          </div>
+        }
+
+        @if (tpLink()) {
+          <div class="tp-link-row">
+            <input
+              pInputText
+              [value]="tpLink()"
+              readonly
+              class="tp-link-input"
+              (click)="$event.target.select()"
+            />
+            <p-button
+              icon="pi pi-copy"
+              severity="secondary"
+              [rounded]="true"
+              pTooltip="Copiar link"
+              (onClick)="copiarLink()"
+            />
+            <a [href]="tpLink()" target="_blank" rel="noopener">
+              <p-button icon="pi pi-external-link" severity="info" text pTooltip="Abrir link" />
+            </a>
+          </div>
+          <small class="tp-hint">Envía este link al abonado para que realice el pago</small>
+        }
+      </div>
+    }
+
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Abonado</span><span>{{ f.abonado_nombre || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Código abonado</span><span>{{ f.abonado_codigo || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Correo</span><span>{{ f.abonado_email || '—' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Período</span><span>{{ f.periodo }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Consumo m³</span><span class="valor-destacado">{{ f.consumo_m3 }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Subtotal agua</span
+        ><span class="monto">L {{ f.subtotal_agua | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Excedente</span
+        ><span class="monto">L {{ f.excedente | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Alcantarillado</span
+        ><span class="monto">L {{ f.alcantarillado | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Mora</span><span class="monto">L {{ f.mora | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Multas</span><span class="monto">L {{ f.multas | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Total</span
+        ><span class="monto total-final">L {{ f.total | number: '1.2-2' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Emisión</span><span>{{ f.fecha_emision | date: 'yyyy-MM-dd' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Vencimiento</span
+        ><span>{{ f.fecha_vencimiento | date: 'yyyy-MM-dd' }}</span>
+      </div>
+    </div>
+
+    @if (transacciones().length > 0) {
+      <div class="card">
+        <h3 style="margin: 0 0 0.75rem; font-size: 1rem">Transacciones de pago en línea</h3>
+        <p-table [value]="transacciones()" dataKey="id" size="small" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>ID</th>
+              <th>Operation</th>
+              <th class="num">Monto</th>
+              <th>Estado</th>
+              <th>Creado</th>
+              <th>Confirmado</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-t>
+            <tr>
+              <td>{{ t.id }}</td>
+              <td style="font-size: 0.75rem; font-family: monospace">{{ t.operation_id }}</td>
+              <td class="num">{{ t.monto | number: '1.2-2' }}</td>
+              <td>
+                <p-tag
+                  [value]="t.status"
+                  [severity]="
+                    t.status === 'completed'
+                      ? 'success'
+                      : t.status === 'failed' || t.status === 'expired'
+                        ? 'danger'
+                        : 'warn'
+                  "
+                />
+              </td>
+              <td>{{ t.fecha_creacion | date: 'yyyy-MM-dd HH:mm' }}</td>
+              <td>{{ (t.fecha_confirmacion | date: 'yyyy-MM-dd HH:mm') || '—' }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  }
+</section>
+
+@if (factura(); as f) {
+  <p-dialog
+    header="Imprimir recibo"
+    [(visible)]="showImprimirDialog"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '380px' }"
+    appendTo="body"
+  >
+    <p>¿Desea imprimir el recibo de cobro en la impresora térmica?</p>
+    <ng-template pTemplate="footer">
+      <p-button label="No" icon="pi pi-times" severity="secondary" (onClick)="noImprimir()" />
+      <p-button label="Sí, imprimir" icon="pi pi-print" (onClick)="imprimirSi()" />
+    </ng-template>
+  </p-dialog>
+
+  <div class="ticket-print">
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="ticket-title">JUNTA DE AGUA</div>
+        <div class="ticket-sub">Sistema de Agua Potable</div>
+        <div class="ticket-divider">==============================</div>
+        <div class="ticket-factura">RECIBO DE COBRO #{{ f.id }}</div>
+        <div class="ticket-divider">------------------------------</div>
+      </div>
+
+      <div class="ticket-body">
+        <div class="ticket-row">
+          <span>Abonado:</span><span>{{ f.abonado_nombre || '—' }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Código:</span><span>{{ f.abonado_codigo || '—' }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Período:</span><span>{{ f.periodo }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Emisión:</span><span>{{ f.fecha_emision | date: 'yyyy-MM-dd' }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Vence:</span><span>{{ f.fecha_vencimiento | date: 'yyyy-MM-dd' }}</span>
+        </div>
+        <div class="ticket-divider">------------------------------</div>
+
+        <div class="ticket-row">
+          <span>Consumo m³</span><span class="tr">{{ f.consumo_m3 }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Subtotal agua</span
+          ><span class="tr">L {{ f.subtotal_agua | number: '1.2-2' }}</span>
+        </div>
+        @if (f.excedente) {
+          <div class="ticket-row">
+            <span>Excedente</span><span class="tr">L {{ f.excedente | number: '1.2-2' }}</span>
+          </div>
+        }
+        @if (f.alcantarillado) {
+          <div class="ticket-row">
+            <span>Alcantarillado</span
+            ><span class="tr">L {{ f.alcantarillado | number: '1.2-2' }}</span>
+          </div>
+        }
+        @if (f.mora) {
+          <div class="ticket-row">
+            <span>Mora</span><span class="tr">L {{ f.mora | number: '1.2-2' }}</span>
+          </div>
+        }
+        @if (f.multas) {
+          <div class="ticket-row">
+            <span>Multas</span><span class="tr">L {{ f.multas | number: '1.2-2' }}</span>
+          </div>
+        }
+        <div class="ticket-divider">==============================</div>
+        <div class="ticket-row ticket-total">
+          <span>TOTAL</span><span class="tr">L {{ f.total | number: '1.2-2' }}</span>
+        </div>
+        <div class="ticket-row">
+          <span>Pagado</span><span class="tr">L {{ f.total_pagado || 0 | number: '1.2-2' }}</span>
+        </div>
+        <div class="ticket-row ticket-saldo">
+          <span>SALDO</span
+          ><span class="tr">L {{ (f.total || 0) - (f.total_pagado || 0) | number: '1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="ticket-footer">
+        <div class="ticket-divider">==============================</div>
+        <div class="ticket-gracia">¡Gracias por su pago puntual!</div>
+        <div class="ticket-sub">Evite recargos por mora</div>
+        <div class="ticket-divider">------------------------------</div>
+        <div class="ticket-legales">
+          Recibo generado electrónicamente. Sin sello ni firma requeridos.
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<p-dialog
+  header="Enviar factura por correo"
+  [(visible)]="showCorreoDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="correo-dialog"
+>
+  <div class="correo-form">
+    <div class="campo">
+      <label>Dirección de correo</label>
+      <input
+        pInputText
+        type="email"
+        [(ngModel)]="correoDestino"
+        style="width: 100%"
+        placeholder="abonado@ejemplo.com"
+      />
+      <small>Se enviará la factura en formato HTML al correo del abonado</small>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      text
+      (onClick)="showCorreoDialog.set(false)"
+    />
+    <p-button
+      label="Enviar"
+      icon="pi pi-send"
+      severity="help"
+      [loading]="enviando()"
+      (onClick)="enviarCorreo()"
+      [disabled]="!correoDestino()"
+    />
+  </ng-template>
+</p-dialog>

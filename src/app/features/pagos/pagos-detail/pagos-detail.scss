@@ -1,0 +1,120 @@
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1.5rem;
+  .ficha-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    .lbl {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    span:last-child {
+      color: #1e293b;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.monto {
+  font-variant-numeric: tabular-nums;
+}
+.total-final {
+  font-weight: 700;
+  font-size: 1.1rem !important;
+  color: #0f172a;
+}
+
+.ticket-print {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+
+  body {
+    background: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+
+  .ticket-print {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .ticket {
+    width: 72mm;
+    margin: 0 auto;
+    padding: 3mm 0;
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 9pt;
+    color: #000;
+    line-height: 1.25;
+  }
+
+  .ticket-header {
+    text-align: center;
+    margin-bottom: 2mm;
+  }
+  .ticket-title {
+    font-size: 14pt;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .ticket-sub {
+    font-size: 8pt;
+    color: #333;
+  }
+  .ticket-factura {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 1mm 0;
+  }
+  .ticket-divider {
+    font-size: 9pt;
+    letter-spacing: 1px;
+    color: #555;
+    white-space: pre;
+  }
+
+  .ticket-body {
+    margin: 2mm 0;
+  }
+  .ticket-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5mm 0;
+    font-size: 9pt;
+    .tr {
+      text-align: right;
+    }
+  }
+
+  .ticket-total {
+    font-weight: 700;
+    font-size: 11pt;
+    padding: 1mm 0;
+  }
+
+  .ticket-footer {
+    text-align: center;
+    margin-top: 2mm;
+  }
+  .ticket-gracia {
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 1mm 0;
+  }
+}

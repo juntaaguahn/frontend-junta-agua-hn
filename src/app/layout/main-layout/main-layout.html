@@ -1,0 +1,85 @@
+<div
+  class="layout-wrapper"
+  [class.sidebar-hidden]="sidebarHidden()"
+  [class.sidebar-open]="mobileSidebarOpen()"
+>
+  <!-- Sidebar overlay (mobile only) -->
+  <div class="sidebar-overlay" (click)="mobileSidebarOpen.set(false)"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="assets/img/cascada.png" alt="Logo Junta de Agua" class="sidebar-logo-img" />
+        <span class="sidebar-title">{{ params.nombreEmpresa() }}</span>
+      </div>
+      <button
+        class="sidebar-pin"
+        [class.visible]="!sidebarHidden()"
+        [class.pinned]="pinned()"
+        (click)="togglePin()"
+        title="Fijar sidebar"
+      ></button>
+      <button
+        class="sidebar-close-mobile"
+        (click)="mobileSidebarOpen.set(false)"
+        title="Cerrar menú"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+    <div class="sidebar-menu" (click)="onMenuClick($event)">
+      <p-panelmenu [model]="menuItems()" class="w-full md:w-80" />
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="layout-main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <p-button
+          [icon]="toggleIcon"
+          (onClick)="toggleSidebar()"
+          severity="warn"
+          iconOnly
+          rounded
+          class="sidebar-toggle"
+        ></p-button>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip hidden-mobile">
+          <div class="user-chip-info">
+            <span class="user-name">{{ user()?.nombre }}</span>
+            <span class="user-role">{{ rol() }}</span>
+          </div>
+          <span class="user-avatar">
+            <p-avatar [label]="initials" shape="circle" size="normal" />
+          </span>
+        </div>
+        <p-splitbutton
+          label="Perfil"
+          [model]="userMenuItems"
+          text
+          severity="secondary"
+          styleClass="profile-btn"
+        />
+      </div>
+    </header>
+
+    <!-- Banner modo offline / sincronización -->
+    <app-offline-banner />
+
+    <!-- Content -->
+    <main class="layout-content">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- Widget de chat flotante (abajo a la derecha) -->
+  <app-chat-widget />
+</div>
+
+<!-- Globales: notificaciones y confirmaciones -->
+<p-toast />
+<p-confirmdialog />

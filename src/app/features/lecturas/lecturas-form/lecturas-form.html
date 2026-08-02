@@ -1,0 +1,123 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ titulo() }}</h1>
+      <p class="page-subtitle">Registro de lectura del medidor</p>
+    </div>
+    <p-button
+      label="Volver"
+      icon="pi pi-arrow-left"
+      severity="secondary"
+      text
+      rounded
+      [size]="selectSize"
+      (onClick)="volver()"
+    />
+  </header>
+
+  @if (cargando()) {
+    <div class="card">Cargando datos...</div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="card form-grid">
+      <div class="campo">
+        <label for="abonado_id">Abonado <span class="req">*</span></label>
+        <p-select
+          id="abonado_id"
+          formControlName="abonado_id"
+          [options]="abonados()"
+          optionLabel="nombre"
+          optionValue="id"
+          [showClear]="!esEdicion()"
+          [filter]="true"
+          filterPlaceholder="Buscar abonado..."
+          appendTo="body"
+          [disabled]="esEdicion()"
+          (onChange)="onAbonadoChange()"
+        />
+        @if (invalid('abonado_id')) {
+          <small class="err">El abonado es obligatorio</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="periodo">Período <span class="req">*</span></label>
+        <input
+          pInputText
+          id="periodo"
+          formControlName="periodo"
+          maxlength="7"
+          placeholder="YYYY-MM"
+          [ngClass]="{ 'ng-invalid': invalid('periodo') }"
+        />
+        @if (invalid('periodo')) {
+          <small class="err">Ingrese un período válido (YYYY-MM)</small>
+        }
+        @if (periodoSvc.tienePeriodo() && !esEdicion()) {
+          <small class="periodo-asignado">
+            Período asignado: <strong>{{ periodoSvc.periodoLectura() }}</strong>
+          </small>
+        }
+      </div>
+
+      <div class="campo">
+        <label>Lectura anterior</label>
+        <div class="lectura-anterior">{{ lecturaAnterior() ?? '—' }}</div>
+      </div>
+
+      <div class="campo">
+        <label for="lectura_actual">Lectura actual <span class="req">*</span></label>
+        <input
+          pInputText
+          id="lectura_actual"
+          formControlName="lectura_actual"
+          type="number"
+          min="0"
+          [ngClass]="{ 'ng-invalid': invalid('lectura_actual') }"
+        />
+        @if (invalid('lectura_actual')) {
+          <small class="err">La lectura actual es obligatoria y debe ser mayor o igual a 0</small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="fecha_lectura">Fecha de lectura <span class="req">*</span></label>
+        <p-datepicker
+          id="fecha_lectura"
+          formControlName="fecha_lectura"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          appendTo="body"
+        />
+      </div>
+
+      <div class="campo campo-wide">
+        <label for="observacion">Observación</label>
+        <textarea
+          pTextarea
+          id="observacion"
+          formControlName="observacion"
+          rows="2"
+          maxlength="255"
+        ></textarea>
+      </div>
+
+      <div class="acciones-form">
+        <p-button
+          type="button"
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          [size]="selectSize"
+          (onClick)="volver()"
+        />
+        <p-button
+          type="submit"
+          label="Guardar"
+          icon="pi pi-check"
+          [size]="selectSize"
+          [loading]="guardando()"
+        />
+      </div>
+    </form>
+  }
+</section>

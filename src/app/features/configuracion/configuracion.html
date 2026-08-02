@@ -1,0 +1,68 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Configuración</h1>
+      <p class="page-subtitle">Parámetros y opciones administrativas del sistema</p>
+    </div>
+  </header>
+
+  <!-- Datos de la organización (sólo lectura / informativo) -->
+  <div class="card org-card">
+    <i class="pi pi-water org-icon"></i>
+    <div class="org-data">
+      <div class="org-name">{{ nombreOrg() }}</div>
+      <div class="org-sub">Sistema de gestión de agua potable</div>
+    </div>
+  </div>
+
+  <!-- Accesos rápidos -->
+  <h2 class="section-title">Módulos administrativos</h2>
+  <div class="accesos-grid">
+    @for (a of accesos; track a.ruta) {
+      <div class="acceso-card" (click)="ir(a.ruta)">
+        <div class="acceso-icono" [attr.data-sev]="a.severity">
+          <i class="pi" [class]="a.icono"></i>
+        </div>
+        <div class="acceso-texto">
+          <div class="acceso-titulo">{{ a.titulo }}</div>
+          <div class="acceso-desc">{{ a.descripcion }}</div>
+        </div>
+        <i class="pi pi-angle-right acceso-flecha"></i>
+      </div>
+    }
+  </div>
+
+  <!-- Cambio de contraseña -->
+  <div class="card">
+    <h2 class="section-title">Seguridad</h2>
+    <form class="pwd-form" #f="ngForm" (ngSubmit)="cambiarPassword(f.value.actual, f.value.nueva)">
+      <div class="pwd-field">
+        <label for="actual">Contraseña actual</label>
+        <input
+          class="pwd-input"
+          type="password"
+          id="actual"
+          name="actual"
+          ngModel
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+      </div>
+      <div class="pwd-field">
+        <label for="nueva">Nueva contraseña</label>
+        <input
+          class="pwd-input"
+          type="password"
+          id="nueva"
+          name="nueva"
+          ngModel
+          placeholder="Mínimo 6 caracteres"
+          autocomplete="new-password"
+        />
+      </div>
+      <div class="pwd-accion">
+        <p-button type="submit" label="Cambiar contraseña" icon="pi pi-key" [loading]="cargandoPassword()" />
+      </div>
+    </form>
+  </div>
+</section>

@@ -1,0 +1,215 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Cobro Rápido</h1>
+      <p class="page-subtitle">Facturas pendientes de pago — cobre de forma rápida</p>
+    </div>
+    <p-button
+      label="Refrescar"
+      icon="pi pi-refresh"
+      severity="secondary"
+      rounded
+      (onClick)="cargar()"
+    />
+  </header>
+
+  <div class="card selector">
+    <div class="campo">
+      <label>Filtrar por abonado</label>
+      <p-select
+        [options]="abonados()"
+        optionLabel="nombre"
+        optionValue="id"
+        [filter]="true"
+        filterBy="nombre,codigo"
+        (onFilter)="buscarAbonado($event.filter)"
+        [(ngModel)]="abonadoId"
+        placeholder="Todos los abonados…"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="w-full"
+      />
+      <small>Escriba el nombre o código para filtrar las facturas</small>
+    </div>
+  </div>
+
+  @if (filtradas().length > 0) {
+    <div class="totales-grid">
+      <div class="total-card">
+        <div class="label">Facturas pendientes</div>
+        <div class="value">{{ filtradas().length }}</div>
+      </div>
+      <div class="total-card total-saldo">
+        <div class="label">Total por cobrar</div>
+        <div class="value">L {{ totalPendiente() | number: '1.2-2' }}</div>
+      </div>
+    </div>
+  }
+
+  @if (seleccion().length > 0) {
+    <div class="seleccion-bar card">
+      <span class="sel-info">
+        <i class="pi pi-check-square"></i>
+        {{ seleccion().length }} factura(s) seleccionada(s)
+      </span>
+      <div class="sel-actions">
+        <p-button
+          label="Enviar correo masivo"
+          icon="pi pi-envelope"
+          severity="help"
+          [loading]="enviandoSeleccion()"
+          (onClick)="enviarSeleccionados()"
+        />
+        <p-button
+          label="Limpiar"
+          icon="pi pi-times"
+          severity="secondary"
+          text
+          (onClick)="limpiarSeleccion()"
+        />
+      </div>
+    </div>
+  }
+
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="4rem" /></div>
+  } @else {
+    <p-dataview
+      [value]="filtradas()"
+      dataKey="id"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} facturas"
+    >
+      <ng-template #list let-items>
+        <div class="dv-cards">
+          @for (f of items; track f.id) {
+            <div class="dv-card" [class.seleccionada]="isSelected(f)">
+              <div class="dv-top">
+                <div class="dv-select">
+                  <p-checkbox
+                    [binary]="true"
+                    [ngModel]="isSelected(f)"
+                    (onChange)="toggleSeleccion(f, $event.checked)"
+                    [styleClass]="'dv-check'"
+                  />
+                  <span class="dv-title">Factura #{{ f.id }} · {{ f.periodo }}</span>
+                </div>
+                <span class="dv-value">{{ f.abonado_nombre || '—' }}</span>
+              </div>
+
+              <div class="dv-body">
+                <div class="dv-row">
+                  <span class="dv-label">Código</span>
+                  <span class="dv-value">{{ f.abonado_codigo || '—' }}</span>
+                </div>
+                <div class="dv-row">
+                  <span class="dv-label">Total</span>
+                  <span class="dv-value">L {{ f.total | number: '1.2-2' }}</span>
+                </div>
+                <div class="dv-row">
+                  <span class="dv-label">Pagado</span>
+                  <span class="dv-value">L {{ f.total_pagado || 0 | number: '1.2-2' }}</span>
+                </div>
+                <div class="dv-row">
+                  <span class="dv-label">Saldo</span>
+                  <span class="dv-value dv-monto">L {{ saldo(f) | number: '1.2-2' }}</span>
+                </div>
+                <div class="dv-row">
+                  <span class="dv-label">Vence</span>
+                  <span class="dv-value">{{ f.fecha_vencimiento | date: 'yyyy-MM-dd' }}</span>
+                </div>
+                @if (f.mora) {
+                  <div class="dv-row">
+                    <span class="dv-label">Mora</span>
+                    <span class="dv-value">L {{ f.mora | number: '1.2-2' }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="dv-actions">
+                <p-button
+                  icon="pi pi-whatsapp"
+                  severity="success"
+                  [rounded]="true"
+                  size="small"
+                  label="WhatsApp"
+                  pTooltip="Compartir por WhatsApp"
+                  (onClick)="compartir(f)"
+                />
+                <p-button
+                  icon="pi pi-envelope"
+                  severity="info"
+                  [rounded]="true"
+                  size="small"
+                  label="Correo"
+                  pTooltip="Enviar por correo"
+                  (onClick)="abrirCorreo(f)"
+                />
+                <p-button
+                  label="Cobrar"
+                  icon="pi pi-credit-card"
+                  size="small"
+                  severity="help"
+                  [rounded]="true"
+                  (onClick)="cobrar(f)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <div class="empty-state">
+          <i class="pi pi-inbox"></i>
+          <p>No hay facturas pendientes de pago.</p>
+        </div>
+      </ng-template>
+    </p-dataview>
+  }
+</section>
+
+@if (correoFactura(); as f) {
+  <p-dialog
+    header="Enviar factura #{{ f.id }} por correo"
+    [(visible)]="showCorreoDialog"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="correo-dialog"
+  >
+    <div class="correo-form">
+      <div class="campo">
+        <label>Dirección de correo</label>
+        <input
+          pInputText
+          type="email"
+          [(ngModel)]="correoDestino"
+          style="width: 100%"
+          placeholder="abonado@ejemplo.com"
+        />
+        <small>Se enviará la factura en formato HTML al correo del abonado</small>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        label="Cancelar"
+        icon="pi pi-times"
+        severity="secondary"
+        text
+        (onClick)="showCorreoDialog.set(false)"
+      />
+      <p-button
+        label="Enviar"
+        icon="pi pi-send"
+        severity="help"
+        [loading]="enviando()"
+        (onClick)="enviarCorreo()"
+        [disabled]="!correoDestino()"
+      />
+    </ng-template>
+  </p-dialog>
+}

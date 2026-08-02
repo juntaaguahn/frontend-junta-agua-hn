@@ -1,0 +1,78 @@
+<section class="page">
+  @if (cargando()) {
+    <div class="card"><p-skeleton width="100%" height="2rem" styleClass="mb-3" /></div>
+    <div class="card"><p-skeleton width="100%" height="8rem" /></div>
+  } @else if (orden(); as o) {
+    <header class="page-header">
+      <div>
+        <h1 class="page-title">Orden de Corte #{{ o.id }}</h1>
+        <p class="page-subtitle">
+          {{ o.abonado_nombre }} ({{ o.abonado_codigo }})
+          <p-tag
+            [value]="estadoLabel(o.estado)"
+            [severity]="estadoSeverity(o.estado)"
+            styleClass="ml-2"
+          />
+        </p>
+      </div>
+      <div>
+        @if (o.estado === 'pendiente') {
+          <p-button
+            label="Ejecutar"
+            icon="pi pi-play"
+            severity="warn"
+            rounded
+            (onClick)="ejecutar()"
+          />
+        }
+        <p-button
+          label="Volver"
+          icon="pi pi-arrow-left"
+          severity="secondary"
+          text
+          rounded
+          (onClick)="volver()"
+        />
+      </div>
+    </header>
+
+    <div class="card ficha">
+      <div class="ficha-item">
+        <span class="lbl">Abonado</span>
+        <span>{{ o.abonado_nombre }} ({{ o.abonado_codigo }})</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Sector</span>
+        <span>{{ o.sector || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Dirección</span>
+        <span>{{ o.direccion || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Motivo</span>
+        <span>{{ o.motivo || '-' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Fecha de emisión</span>
+        <span>{{ o.fecha_emision | date: 'yyyy-MM-dd' }}</span>
+      </div>
+      <div class="ficha-item">
+        <span class="lbl">Estado</span>
+        <span><p-tag [value]="estadoLabel(o.estado)" [severity]="estadoSeverity(o.estado)" /></span>
+      </div>
+      @if (o.fecha_ejecucion) {
+        <div class="ficha-item">
+          <span class="lbl">Fecha de ejecución</span>
+          <span>{{ o.fecha_ejecucion | date: 'yyyy-MM-dd' }}</span>
+        </div>
+      }
+      @if (o.factura_total != null) {
+        <div class="ficha-item">
+          <span class="lbl">Total factura</span>
+          <span>L {{ o.factura_total | number: '1.2-2' }}</span>
+        </div>
+      }
+    </div>
+  }
+</section>
