@@ -6,7 +6,7 @@
   },
   "vars": {
 		"API_URL": "https://backend-junta-agua-hn.onrender.com/api",
-		"NODE_ENV": "production",
+		"PRODUCTION": "true",
 		"CURRENCY_SYMBOL": "L "
 	}
 }
