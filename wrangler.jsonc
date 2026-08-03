@@ -3,5 +3,10 @@
   "compatibility_date": "2026-08-01",
   "assets": {
     "directory": "dist/frontend-junta-agua-hn/browser"
-  }
+  },
+  "vars": {
+		"API_URL": "https://backend-junta-agua-hn.onrender.com/api",
+		"NODE_ENV": "production",
+		"CURRENCY_SYMBOL": "L "
+	}
 }

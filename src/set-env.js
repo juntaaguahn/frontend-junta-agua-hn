@@ -22,11 +22,10 @@ const currencySymbol = process.env.CURRENCY_SYMBOL || 'L ';
 const envConfigFile = `// GENERADO por src/set-env.js — NO editar a mano.
 // Cambia los valores en src/.env y ejecuta: npm run config
 export const environment = {
-  production: ${production},
-  apiUrl: '${apiUrl}',
-  currencySymbol: '${currencySymbol}',
+  production: ${NODE_ENV},
+  apiUrl: '${API_URL}',
+  currencySymbol: '${CURRENCY_SYMBOL}',
 };
-`;
 
 fs.writeFileSync(targetPath, envConfigFile);
-console.log(`environment.ts generado → ${targetPath}`);
+console.log(`environment generado → ${targetPath}`);
