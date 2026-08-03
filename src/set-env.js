@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+try {
+  require('dotenv').config({ path: path.join(__dirname, '.env') });
+} catch (_) {
+  // dotenv es una devDependency; en CI las variables llegan via process.env
+}
 
 const projectRoot = path.resolve(__dirname, '..');
 const targetPath = path.join(projectRoot, 'src/environments/environment.ts');
