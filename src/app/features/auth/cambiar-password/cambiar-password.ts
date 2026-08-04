@@ -9,7 +9,6 @@ import { PasswordModule } from 'primeng/password';
 import { MessageModule } from 'primeng/message';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { sha256 } from '../../../core/utils/crypto.util';
 
 @Component({
   selector: 'app-cambiar-password',
@@ -64,8 +63,7 @@ export class CambiarPasswordComponent {
 
     this.guardando.set(true);
     try {
-      const nuevaHash = await sha256(this.nueva);
-      this.auth.changePassword(this.actual, nuevaHash).subscribe({
+      this.auth.changePassword(this.actual, this.nueva).subscribe({
         next: () => {
           this.exito.set('Contraseña actualizada correctamente');
           this.actual = '';
